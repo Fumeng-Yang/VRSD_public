@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/shaders/_shader.vert</file>
+        <file>resources/shaders/_shader.frag</file>
+        <file>resources/models/hand.obj</file>
+        <file>resources/models/hand-right.obj</file>
+        <file>resources/img/babi-examples.png</file>
+        <file>resources/img/cifar10-examples.png</file>
+        <file>resources/img/interaction_examples.png</file>
+    </qresource>
+</RCC>

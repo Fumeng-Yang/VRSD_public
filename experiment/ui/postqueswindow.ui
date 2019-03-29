@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PostQuesWindow</class>
+ <widget class="QMainWindow" name="PostQuesWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1700</width>
+    <height>1101</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>~Experiment~</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow{background:white;}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="minimumSize">
+    <size>
+     <width>1200</width>
+     <height>800</height>
+    </size>
+   </property>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>10</y>
+      <width>1681</width>
+      <height>1220</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>1000</width>
+      <height>0</height>
+     </size>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,15,15,15,0,1">
+     <property name="spacing">
+      <number>50</number>
+     </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetFixedSize</enum>
+     </property>
+     <property name="leftMargin">
+      <number>200</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>10</number>
+     </property>
+     <property name="bottomMargin">
+      <number>10</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="instructionBox">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>78</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>&lt;h2&gt;Last Session : Post-questions&lt;/h2&gt;Please answer the following questions.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="minimumSize">
+        <size>
+         <width>1000</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="title">
+        <string>Did you wear contact lens or glasses in the experiment?</string>
+       </property>
+       <widget class="QWidget" name="horizontalLayoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>9</x>
+          <y>40</y>
+          <width>1451</width>
+          <height>80</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QRadioButton" name="glass1">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>goodEyes</string>
+           </property>
+           <property name="text">
+            <string>My eyes are good</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">lensGlassesRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="glass2">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>contact</string>
+           </property>
+           <property name="text">
+            <string>Contact lens</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">lensGlassesRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="glass3">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>glasses</string>
+           </property>
+           <property name="text">
+            <string>Glasses</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">lensGlassesRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="glass4">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>notused</string>
+           </property>
+           <property name="text">
+            <string>I have near/far sight, but I didn't use contacts/glasses</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">lensGlassesRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="minimumSize">
+        <size>
+         <width>1000</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="title">
+        <string>Did you feel sick when using the VR headset? </string>
+       </property>
+       <widget class="QWidget" name="horizontalLayoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>9</x>
+          <y>19</y>
+          <width>1451</width>
+          <height>101</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QRadioButton" name="sickness1">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>notSick</string>
+           </property>
+           <property name="text">
+            <string>Not at all</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">sicknessRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="sickness2">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>littleSick</string>
+           </property>
+           <property name="text">
+            <string>A little bit</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">sicknessRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="sickness3">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>someSick</string>
+           </property>
+           <property name="text">
+            <string>Somewhat</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">sicknessRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="sickness4">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>badSick</string>
+           </property>
+           <property name="text">
+            <string>Very bad</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">sicknessRBGroup</string>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="minimumSize">
+        <size>
+         <width>1000</width>
+         <height>200</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="title">
+        <string>Are you familiar with the datasets? E.g., did you use or see them before?</string>
+       </property>
+       <widget class="QTextEdit" name="datafamilarField">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>1451</width>
+          <height>150</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>AvenirNext LT Pro Regular</family>
+          <pointsize>17</pointsize>
+         </font>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="minimumSize">
+        <size>
+         <width>1000</width>
+         <height>200</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="title">
+        <string>Any additional comments?</string>
+       </property>
+       <widget class="QTextEdit" name="commentField">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>1451</width>
+          <height>150</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>AvenirNext LT Pro Regular</family>
+          <pointsize>17</pointsize>
+         </font>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignLeft">
+      <widget class="QPushButton" name="nextButton">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Submit!</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="lensGlassesRBGroup"/>
+  <buttongroup name="sicknessRBGroup"/>
+ </buttongroups>
+</ui>

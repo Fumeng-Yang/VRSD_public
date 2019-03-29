@@ -1,0 +1,3 @@
+babi-q1-e0185-f0-1k-l-2-umap.txt,babi-q1-e0186-f0-1k-l-2-umap.txt,babi-q1-e0187-f0-1k-l-2-umap.txt,babi-q1-e0188-f0-1k-l-2-umap.txt,babi-q1-e0189-f0-1k-l-2-umap.txt,babi-q1-e0190-f0-1k-l-2-umap.txt,babi-q1-e0191-f0-1k-l-2-umap.txt,babi-q1-e0192-f0-1k-l-2-umap.txt,babi-q1-e0193-f0-1k-l-2-umap.txt,babi-q1-e0194-f0-1k-l-2-umap.txt,babi-q1-e0195-f0-1k-l-2-umap.txt,babi-q1-e0196-f0-1k-l-2-umap.txt,babi-q1-e0197-f0-1k-l-2-umap.txt,babi-q1-e0198-f0-1k-l-2-umap.txt,babi-q1-e0199-f0-1k-l-2-umap.txt,babi-q1-e0200-f0-1k-l-2-umap.txt
+0.91,0.911,0.913,0.914,0.912,0.911,0.913,0.917,0.911,0.912,0.909,0.91,0.917,0.922,0.905,0.92
+0.972875,0.9735,0.975375,0.971125,0.97675,0.974625,0.976,0.976125,0.974875,0.978375,0.976875,0.975375,0.979625,0.97775,0.98,0.97975

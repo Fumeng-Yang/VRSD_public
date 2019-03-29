@@ -1,0 +1,1219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PreQuesWindow</class>
+ <widget class="QMainWindow" name="PreQuesWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1697</width>
+    <height>1335</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Avenir Next</family>
+   </font>
+  </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
+  <property name="windowTitle">
+   <string>~Experiment~</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow {background: 'white';}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="minimumSize">
+    <size>
+     <width>1200</width>
+     <height>800</height>
+    </size>
+   </property>
+   <widget class="QWidget" name="formLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>8</x>
+      <y>3</y>
+      <width>1710</width>
+      <height>1333</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Avenir Next</family>
+      <pointsize>24</pointsize>
+     </font>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,0,20,20,20,20,20,20,1">
+     <property name="spacing">
+      <number>30</number>
+     </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetFixedSize</enum>
+     </property>
+     <property name="leftMargin">
+      <number>200</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>10</number>
+     </property>
+     <property name="bottomMargin">
+      <number>10</number>
+     </property>
+     <item>
+      <widget class="QTextEdit" name="instructionsBox">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>60</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QTextEdit{border: 1px solid white;;}</string>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="headerLine">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Please answer the following questions.</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="lineSeparator">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>10</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Avenir Next</family>
+         <pointsize>24</pointsize>
+        </font>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="ageGroup">
+       <property name="minimumSize">
+        <size>
+         <width>1500</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="title">
+        <string>Your age</string>
+       </property>
+       <widget class="QLineEdit" name="ageField">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>200</width>
+          <height>50</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Avenir Next</family>
+          <pointsize>17</pointsize>
+         </font>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
+        </property>
+        <property name="placeholderText">
+         <string>18 ~ 65</string>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="genderGroup">
+       <property name="minimumSize">
+        <size>
+         <width>1500</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="title">
+        <string>Your gender</string>
+       </property>
+       <widget class="QWidget" name="horizontalLayoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>9</x>
+          <y>50</y>
+          <width>1491</width>
+          <height>45</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>Avenir Next</family>
+          <pointsize>24</pointsize>
+         </font>
+        </property>
+        <layout class="QHBoxLayout" name="genderLayout" stretch="2,2,0,8">
+         <property name="spacing">
+          <number>100</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetFixedSize</enum>
+         </property>
+         <item>
+          <widget class="QRadioButton" name="femaleRB">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string> Female</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">genderButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="maleRB">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string> Male</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">genderButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="otherGenderRB">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string> Other</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">genderButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="noGenderRB">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string> Prefer not to say</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">genderButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="MLGroup">
+       <property name="minimumSize">
+        <size>
+         <width>1500</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="title">
+        <string>Are you familiar with machine learning techniques (e.g., kNN, SVM, MLP, neural network)?</string>
+       </property>
+       <widget class="QWidget" name="horizontalLayoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>9</x>
+          <y>55</y>
+          <width>1500</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1500</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Avenir Next</family>
+          <pointsize>24</pointsize>
+         </font>
+        </property>
+        <layout class="QHBoxLayout" name="MLLayout" stretch="2,1,1,1,1,1,1,1,10">
+         <item alignment="Qt::AlignRight">
+          <widget class="QLabel" name="notFamiliarMLLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Not at all familiar</string>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+          <widget class="QRadioButton" name="MLRB1">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>1</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">MLButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="MLRB2">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>2</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">MLButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="MLRB3">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>3</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">MLButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="MLRB4">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string extracomment="4">4</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">MLButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="MLRB5">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>5</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">MLButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="MLRB6">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>6</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">MLButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="MLRB7">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>7</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">MLButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignLeft">
+          <widget class="QLabel" name="familiarMLLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Very familiar</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="DRGroup">
+       <property name="minimumSize">
+        <size>
+         <width>1500</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="title">
+        <string>Are you familiar with dimension reducation techniques (e.g., PCA, MDS, t-SNE, etc.)?</string>
+       </property>
+       <widget class="QWidget" name="horizontalLayoutWidget_4">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>1500</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1500</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Avenir Next</family>
+          <pointsize>24</pointsize>
+         </font>
+        </property>
+        <layout class="QHBoxLayout" name="DRLayout" stretch="2,1,1,1,1,1,1,1,10">
+         <item alignment="Qt::AlignRight">
+          <widget class="QLabel" name="notFamiliarDRLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Not at all familiar</string>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+          <widget class="QRadioButton" name="RDRB1">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string notr="true">1</string>
+           </property>
+           <property name="text">
+            <string extracomment="1"/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">DRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="RDRB2">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>2</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">DRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="RDRB3">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>3</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">DRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="RDRB4">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>4</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">DRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="RDRB5">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>5</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">DRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="RDRB6">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>6</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">DRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="RDRB7">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>7</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">DRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignLeft">
+          <widget class="QLabel" name="familiarDRLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Very familiar</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="VISGroup">
+       <property name="minimumSize">
+        <size>
+         <width>1500</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="title">
+        <string>Are you familiar with visualizations (e.g., scatterplots, bar charts, parallel coordinates, etc.)? </string>
+       </property>
+       <widget class="QWidget" name="horizontalLayoutWidget_5">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>1500</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1500</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Avenir Next</family>
+          <pointsize>24</pointsize>
+         </font>
+        </property>
+        <layout class="QHBoxLayout" name="VISLayout" stretch="2,1,1,1,1,1,1,1,10">
+         <item alignment="Qt::AlignRight">
+          <widget class="QLabel" name="notFamiliarVISLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Not at all familiar</string>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+          <widget class="QRadioButton" name="VISRB1">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>1</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VISButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VISRB2">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>2</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VISButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VISRB3">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>3</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VISButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VISRB4">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>4</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VISButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VISRB5">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>5</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VISButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VISRB6">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>6</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VISButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VISRB7">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>7</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VISButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignLeft">
+          <widget class="QLabel" name="familiarVISLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Very familiar</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="VRGroup">
+       <property name="minimumSize">
+        <size>
+         <width>1500</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>110</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="title">
+        <string>Are you familiar with using any VR devices (e.g., Oculus Rift, HTC vive, or the Yurt, etc.)?</string>
+       </property>
+       <widget class="QWidget" name="horizontalLayoutWidget_6">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>1500</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>1500</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Avenir Next</family>
+          <pointsize>24</pointsize>
+         </font>
+        </property>
+        <layout class="QHBoxLayout" name="VRLayout" stretch="2,1,1,1,1,1,1,1,10">
+         <item alignment="Qt::AlignRight">
+          <widget class="QLabel" name="familiarVRLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Not at all familiar</string>
+           </property>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+          <widget class="QRadioButton" name="VRRB1">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>1</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VRRB2">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>2</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VRRB3">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>3</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VRRB4">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>4</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VRRB5">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>5</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VRRB6">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>6</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignHCenter">
+          <widget class="QRadioButton" name="VRRB7">
+           <property name="font">
+            <font>
+             <family>Avenir Next</family>
+             <pointsize>24</pointsize>
+            </font>
+           </property>
+           <property name="accessibleName">
+            <string>7</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">VRButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item alignment="Qt::AlignLeft">
+          <widget class="QLabel" name="notFamiliarVRLabel">
+           <property name="font">
+            <font>
+             <family>AvenirNext LT Pro Regular</family>
+             <pointsize>17</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Very familiar</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignLeft">
+      <widget class="QPushButton" name="nextButton">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>AvenirNext LT Pro Regular</family>
+         <pointsize>17</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Next</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="VRButtonGroup"/>
+  <buttongroup name="VISButtonGroup"/>
+  <buttongroup name="DRButtonGroup"/>
+  <buttongroup name="MLButtonGroup"/>
+  <buttongroup name="genderButtonGroup"/>
+ </buttongroups>
+</ui>
