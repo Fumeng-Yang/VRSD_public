@@ -1,5 +1,6 @@
 # The full supplementary materials for #1003
-
+## analysis
+   - the analysis scripts for Bayesian models
 ## python
 #### generating participants
    - the script to randomize experimental variables and generate participants
