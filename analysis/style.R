@@ -67,24 +67,3 @@ g <- ggplot( environment = environment()) %>%
           plot.title = element_text(size = 5, hjust = 0.5, face = "bold", colour = textColor,  family = 'Helvetica'),
           legend.position = "none",
           legend.background = element_rect()) 
-
-
-g_l <- ggplot( environment = environment()) %>%
-  +theme(axis.line = element_line(colour = "gray", size = AXIS_LINE_SIZE, linetype = "solid"), 
-         axis.line.y = element_blank(),
-         axis.text = element_text(size = FONT_SIZE, color = textColor,  family = 'Helvetica'),
-         axis.text.x = element_text(size = FONT_SIZE, color = textColor, vjust=0.5, hjust=0.5, face="plain",  family = 'Helvetica'),
-         axis.ticks = element_line(color = darkgray),
-         axis.title.x = element_text(size = FONT_SIZE, color = textColor, family = 'Helvetica'),
-         axis.title.y = element_text(size = FONT_SIZE, color = textColor, family = 'Helvetica'),
-         panel.background = element_rect(fill = backColor, size = 0, colour = NA),
-         panel.grid.major = element_line(colour = barColor, size = AXIS_LINE_SIZE / 2, linetype = "solid"), 
-         panel.grid.minor = element_blank(),
-         panel.spacing = unit(1.2, "lines"),
-         axis.ticks.length = unit(0.1, "lines"),
-         strip.background =  element_rect(fill = NA), 
-         strip.placement = "outside",
-         strip.text = element_text(size = FONT_SIZE, face = "bold", colour = textColor, family = 'Helvetica'),
-         plot.title = element_text(size = 5, hjust = 0.5, face = "bold", colour = textColor,  family = 'Helvetica'),
-         legend.background = element_rect(size = 0, colour = NA),
-         legend.text=element_text(size = FONT_SIZE, face = "bold", colour = textColor, family = 'Helvetica')) 
