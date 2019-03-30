@@ -44,8 +44,6 @@ ABSERROR_COLOR <- "#b6d6d3"
 REACT_COLOR <- "#edbeca"#"#EAAA2A"
 
 
-
-# average comfortable level: explanation x vis
 g <- ggplot( environment = environment()) %>%
   +theme(axis.line = element_line(colour = "gray", size = AXIS_LINE_SIZE, linetype = "solid"), 
           axis.line.y = element_blank(),
