@@ -1,4 +1,4 @@
-# The full supplementary materials for #1003
+# The supplementary materials for #1003
 ## analysis
    - the analysis scripts for the Bayesian inference (they may take 10 - 30 minutes to run)
 ## python
