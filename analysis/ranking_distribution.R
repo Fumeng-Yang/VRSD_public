@@ -1,37 +1,40 @@
-blues <- c("#C6DBEF", "#3182BD", "#08519C")
-
 N_ITER = 2100
 N_WARMUP = 1100
 N_THIN = 1
 N_CHAINS = 4
 
-REBUILD = F
+REBUILD = T
 
-bw_mu <- 0.1 
-bw_sigma <- 1
+bw_mean <- 05
+bw_sd <- 1
 
-w <- 14
+w <- 14.5
 h <- 8
 
-mu_scale_ae <- c(2.5, 8.5)
-break_mu1 <- seq(2.5, 8.5, by = 2)
-sigma_scale_ae <-c(.7, 2.0)
+mean_scale_ae <- c(4, 13)
+break_mean1 <- seq(4, 13, by = 3)
+sd_scale_ae <-c(1, 1.25)
 
-mu_scale_rt <- c(2, 23)
-break_mu2 <- seq(2, 23, by = 7)
-sigma_scale_rt <- c(0, 2)
+mean_scale_rt <- c(3, 27)
+break_mean2 <- seq(3, 27, by = 6)
+sd_scale_rt <- c(1, 1.25)
 
 
-getDistribution <- function(post_fit, metric, mu_scale, sigma_scale, break_mu, bw, flag, fcolor){
+getDistribution <- function(post_fit, metric, mean_scale, sd_scale, break_mean, bw, flag, fcolor){
+  .delta <- 0
+  
+  if(metric == "Error Magnitude"){
+    .delta <- delta
+  }
+  
     post <- trials %>%
         data_grid(AllFactors) %>%
-        add_fitted_draws(post_fit, re_formula = NA, allow_new_levels = TRUE, dpar = c("mu", "sigma")) 
+        add_fitted_draws(post_fit, re_formula = NA, allow_new_levels = TRUE, dpar = c("mu", "sigma")) %>%
+        mutate(.mean = .value - .delta) %>%
+        mutate(.sd = sqrt(1 + sigma / (mu * mu) ))
     
     post_ci<- post %>%
         median_qi(.width = c(.95, .5, .0))
-
-    post <- post%>% ungroup()%>% mutate(mu = exp(mu) - delta)
-    post_ci <- post_ci%>% ungroup()%>%mutate(mu = exp(mu) - delta) %>% mutate(mu.lower = exp(mu.lower) - delta) %>% mutate(mu.upper = exp(mu.upper) - delta)
     
     
     post_ci1 <-  post_ci %>% filter(.width > 0.94)
@@ -40,7 +43,7 @@ getDistribution <- function(post_fit, metric, mu_scale, sigma_scale, break_mu, b
     
     post_ci1 <- post_ci1 %>%
       ungroup()%>%
-      mutate(AllFactors = fct_reorder(AllFactors, mu.lower, .desc = TRUE)) 
+      mutate(AllFactors = fct_reorder(AllFactors, .mean, .desc = TRUE)) 
   
     
     if(flag == 1){
@@ -53,41 +56,64 @@ getDistribution <- function(post_fit, metric, mu_scale, sigma_scale, break_mu, b
       mutate(AllFactors = fct_relevel(AllFactors, mu_factor_order)) 
     
         d <- subset(post_ci, .width = 0)
-    min_mu <- min(d$mu)
-    max_mu <- max(d$mu)
+    
+    min_mean <- min(d$.mean)
+    max_mean <- max(d$.mean)
   
-    g_mu <-g %>%
-        + geom_vline(xintercept = min_mu, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
-        + geom_vline(xintercept = max_mu, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
-        + geom_density_ridges(data = post, aes(x = mu, y = AllFactors), fill = fcolor,size = 0.0, color = NA, scale = 0.85, rel_min_height = REF_HEIGHT)%>%
-        + geom_errorbarh(data = post_ci2, aes(xmin = mu.lower, xmax = mu.upper, y = AllFactors), size = LINE_SIZE_WIDE, height = 0.00)%>%
-        + geom_errorbarh(data = post_ci1, aes(xmin = mu.lower, xmax = mu.upper, y = AllFactors), size = LINE_SIZE, height = 0.00)%>%
-        + geom_point(data = post_ci, aes(x = mu, y = AllFactors), size = LINE_SIZE_WIDE / 5, color = "white" )%>% 
-        + geom_text(data = post_ci1, size = 2, aes(x = max(mu.upper), y = AllFactors,  label = paste(sprintf("%0.2f", round(mu, digits = 4))," [", sprintf("%0.2f", round(mu.lower, digits = 4)), ", " , sprintf("%0.2f", round(mu.upper, digits = 4)), "]", sep = "")))%>%
+    g_mean <-g %>%
+        + geom_vline(xintercept = min_mean, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
+        + geom_vline(xintercept = max_mean, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
+        + geom_density_ridges(data = post, aes(x = .mean, y = AllFactors), fill = fcolor,size = 0.0, color = NA, scale = 0.85, rel_min_height = REF_HEIGHT)%>%
+        + geom_errorbarh(data = post_ci2, aes(xmin = .mean.lower, xmax = .mean.upper, y = AllFactors), size = LINE_SIZE_WIDE, height = 0.00)%>%
+        + geom_errorbarh(data = post_ci1, aes(xmin = .mean.lower, xmax = .mean.upper, y = AllFactors), size = LINE_SIZE, height = 0.00)%>%
+        # + geom_errorbarh(data = post_ci, aes(xmax = .mean, xmin = .mean, y = AllFactors), size = 0, height = 0.1, color = "white")%>%
+        + geom_point(data = post_ci, aes(x = .mean, y = AllFactors), size = LINE_SIZE_WIDE + LINE_SIZE_NARROW, color = "black")%>%
+        + geom_text(data = post_ci1, size = 2, aes(x = max(.mean.upper) * 1.1, y = AllFactors,  label = paste(sprintf("%0.2f", round(.mean, digits = 4))," [", sprintf("%0.2f", round(.mean.lower, digits = 4)), ", " , sprintf("%0.2f", round(.mean.upper, digits = 4)), "]", sep = "")))%>%
         + scale_fill_brewer(palette="Blues")%>%
-        + scale_x_continuous(expand = c(0,0), limits = mu_scale, breaks = break_mu)%>%
-        + xlab(paste("Posterior Mean ", metric)) + ylab("AllFactors")+ ggtitle("Mu")
+        + scale_x_continuous(expand = c(0.05,0.05), limits = mean_scale, breaks = break_mean)%>%
+        + scale_y_discrete(expand = c(0.01,0))%>%
+        + xlab(paste("Posterior Mean ", metric)) + ylab("AllFactors")+ ggtitle("mean")
    
   
-      
-    
-    min_sigma <- min(d$sigma)
-    max_sigma <- max(d$sigma)
+    min_sd <- min(d$.sd)
+    max_sd <- max(d$.sd)
   
     
     g_sd <-g %>%
-    + geom_vline(xintercept = min_sigma, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
-    + geom_vline(xintercept = max_sigma, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
-    + geom_density_ridges(data = post, aes(x = sigma, y = AllFactors), fill = fcolor, color = NA, size = 0.0, scale = 0.85, rel_min_height = REF_HEIGHT)%>%
-    + geom_errorbarh(data = post_ci2, aes(xmin = sigma.lower, xmax = sigma.upper, x = sigma, y = AllFactors), size = LINE_SIZE_WIDE, height = 0.00)%>%
-    + geom_errorbarh(data = post_ci1, aes(xmin = sigma.lower, xmax = sigma.upper, x = sigma, y = AllFactors), size = LINE_SIZE,  height = 0.00)%>%
-    + geom_point(data = post_ci, aes(x = sigma, y = AllFactors), size =  LINE_SIZE_WIDE / 5, color = "white" )%>% 
-    + geom_text(data = post_ci1, size = 2, aes(x = max(sigma.upper), y = AllFactors,  label = paste(sprintf("%0.2f", round(sigma, digits = 4))," [", sprintf("%0.2f", round(sigma.lower, digits = 4)), ", " , sprintf("%0.2f", round(sigma.upper, digits = 4)), "]", sep = "")))%>%
+    + geom_vline(xintercept = min_sd, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
+    + geom_vline(xintercept = max_sd, size = LINE_SIZE_NARROW, color = vcolor, linetype= "dashed")%>%
+    + geom_density_ridges(data = post, aes(x = .sd, y = AllFactors), fill = fcolor, color = NA, size = 0.0, scale = 0.85, rel_min_height = REF_HEIGHT)%>%
+    + geom_errorbarh(data = post_ci2, aes(xmin = .sd.lower, xmax = .sd.upper, x = .sd, y = AllFactors), size = LINE_SIZE_WIDE, height = 0.00)%>%
+    + geom_errorbarh(data = post_ci1, aes(xmin = .sd.lower, xmax = .sd.upper, x = .sd, y = AllFactors), size = LINE_SIZE,  height = 0.00)%>%
+    #+ geom_point(data = post_ci, aes(x = .sd, y = AllFactors), size =  LINE_SIZE_WIDE / 5, color = "white" )%>%
+    + geom_point(data = post_ci, aes(x = .sd, y = AllFactors), shape = 108, size = LINE_SIZE_WIDE / 2, color = "white" )%>% 
+    + geom_text(data = post_ci1, size = 2, aes(x = max(.sd.upper)* 1.05, y = AllFactors,  label = paste(sprintf("%0.2f", round(.sd, digits = 4))," [", sprintf("%0.2f", round(.sd.lower, digits = 4)), ", " , sprintf("%0.2f", round(.sd.upper, digits = 4)), "]", sep = "")))%>%
     + scale_fill_brewer(palette="Blues")%>%
-    + scale_x_continuous(expand = c(0,0), limits = c(0.2,1.5))%>%
-    + xlab(paste("Posterior Mean", metric)) + ylab("AllFactors")+ ggtitle("sigma")
+    + scale_x_continuous(expand = c(0.05,0.05), limits = sd_scale)%>%
+    + scale_y_discrete(expand = c(0.01,0))%>%
+    + xlab(paste("Posterior Mean", metric)) + ylab("AllFactors")+ ggtitle("sd")
     
-    return(list(g_mu, g_sd))
+    target_color <- REACT_COLOR
+    breaks_seq <- seq(0,20, by = 3)
+    
+    if(metric == "Error Magnitude"){
+      target_color = ABSERROR_COLOR
+      breaks_seq <- seq(5,10, by = 0.5)
+    }
+    
+    g_mean_tile <- g_l %>%
+      + geom_tile(data = post_ci, aes(x = 1, y = AllFactors, fill = .mean))%>% 
+      + scale_fill_continuous(low = "#ffffff", high = target_color, breaks = breaks_seq) %>%
+      + xlab(paste("Posterior Mean Tile ", metric)) + ylab("AllFactors")+ ggtitle("mean")
+    
+  
+    
+    g_sd_tile <- g_l %>%
+      + geom_tile(data = post_ci, aes(x = 1, y = AllFactors, fill = .sd))%>% 
+      + scale_fill_continuous(low = "#ffffff", high = target_color, breaks_seq) %>%
+      + xlab(paste("Posterior sd Tile ", metric)) + ylab("AllFactors")+ ggtitle("sd")
+    
+    return(list(g_mean, g_sd, g_mean_tile, g_sd_tile))
 }
 
 if(REBUILD){
@@ -107,11 +133,18 @@ if(REBUILD){
 
 }
 
-gs_abs <- getDistribution(post_fit_abserror, "Absolute Estimation Error", mu_scale_ae, sigma_scale_ae, break_mu1, bw_mu, 1, ABSERROR_COLOR)
-gs_reacttime <- getDistribution(post_fit_reacttime, "Reaction Time", mu_scale_rt, sigma_scale_rt, break_mu2, bw_sigma, 2, REACT_COLOR)
+gs_abs <- getDistribution(post_fit_abserror, "Error Magnitude", mean_scale_ae, sd_scale_ae, break_mean1, bw_mean, 1, ABSERROR_COLOR)
+gs_reacttime <- getDistribution(post_fit_reacttime, "Response Time", mean_scale_rt, sd_scale_rt, break_mean2, bw_sd, 2, REACT_COLOR)
 
-path1 <- "pic/fig_post_mu_rank.pdf"
-path2 <- "pic/fig_post_sigma_rank.pdf"
+path1 <- "pic/fig_post_mean_rank.pdf"
+path2 <- "pic/fig_post_sd_rank.pdf"
+
+path3 <- "pic/fig_post_mean_tiles.pdf"
+path4 <- "pic/fig_post_sd_tiles.pdf"
 
 ggsave(file = path1,ggarrange(gs_abs[[1]], gs_reacttime[[1]], widths=c(1,1.05)), width = w, height = h, units = "in")
 ggsave(file = path2, ggarrange(gs_abs[[2]], gs_reacttime[[2]], widths=c(1,1.05)), width = w, height = h, units = "in")
+
+
+ggsave(file = path3,ggarrange(gs_abs[[3]], gs_reacttime[[3]], widths=c(1,1.05)), width = w, height = h, units = "in")
+ggsave(file = path4, ggarrange(gs_abs[[4]], gs_reacttime[[4]], widths=c(1,1.05)), width = w, height = h, units = "in")
