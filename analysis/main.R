@@ -29,11 +29,11 @@ source("modeling_effects.R")
 print("modeling_div_effects.R")# RQ2
 source("modeling_div_effects.R")
 
-print("ranking_distribution.R") # RQ3
-source("ranking_distribution.R")
+print("modeling_interaction_effects.R") # RQ3
+source("modeling_interaction_effects.R")
 
-print("modeling_perception.R") # RQ4
-source("modeling_perception.R")
+print("ranking_distribution.R") # RQ4
+source("ranking_distribution.R")
 
 print("demographics_data.R")
 source("demographics_data.R")

@@ -1,12 +1,8 @@
 
-read.csv.row_null <- function(p){
-  return(read.csv(p, stringsAsFactors = F, header = T, sep=","))
-}
-
 delta <- 1
 
-metas <- read_csv(path = "../data/metas.csv", header = T)
-trials <- read_csv(path = "../data/trials.csv", header = T)
+metas <- read.csv("../data/metas.csv", stringsAsFactors = F, header = T)
+trials <- read.csv("../data/trials.csv", stringsAsFactors = F, header = T)
 
 trials<-subset(trials, TrialStatus == "main") #drop practice trials
 
