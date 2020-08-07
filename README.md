@@ -28,7 +28,7 @@ Supplementary Materials
       -  **SessionStart**,**SessionEnd**,**PracticeStart**,**PracticeEnd**,**MainStart**,**MainEnd**,**QuestionStart**,**QuestionEnd**: these are timestamps
       -  **TrialStatus**: main or practice
       -  **TrialIndex**
-      -  **TrialStart**,**TrialVisualizationStart**,**TrialVisualizationEnd**,**TrialAnswerStart**,**TrialAnswerEnd**,**TrialFeedbackStart**,**TrialEnd**: timestamps for each trial, the response time is the differentce between **TrialAnswerStart** and **TrialVisualizationStart**
+      -  **TrialStart**,**TrialVisualizationStart**,**TrialVisualizationEnd**,**TrialAnswerStart**,**TrialAnswerEnd**,**TrialFeedbackStart**,**TrialEnd**: timestamps for each trial, the response time is the difference between **TrialAnswerStart** and **TrialVisualizationStart**
       -  **TrialAnswer**: participants' answer to this trial
       -  **TrialIntAccuracy**: the true accuracy, rounded 
       -  **TrialSolution**: the true accuracy in decimal numbers
