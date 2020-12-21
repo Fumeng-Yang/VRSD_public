@@ -1,0 +1,472 @@
+---
+title: "VRSD"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    toc: yes
+    toc_depth: 4
+    highlight: textmate
+    theme: united
+    df_print: kable
+---
+
+
+```{r setup, include=FALSE}
+    knitr::opts_chunk$set(fig.width=7.1666, fig.height=5) 
+    # clean up workspace
+    rm(list = ls(all.names = TRUE)) 
+    setwd("/Volumes/Data/Github/VRSD_public/analysis")
+```
+
+
+```{r load-packages message=FALSE}
+
+library(ggplot2) #core graphics package
+library(ggridges) # ggarrange
+library(ggpubr)
+
+library(tidyverse) # data manipulation
+library(forcats)
+
+library(rstan) #detectCores
+library(brms) # core pack
+library(parallel) #detectCores
+library(modelr)
+
+
+library(tidybayes) 
+library(data.table) #%like%
+
+
+```
+
+```{r style-setting include = FALSE, message = FALSE}
+DOT_SIZE <- 2
+DOT_SIZE_BIG <- 3
+DOT_SIZE_SMALL <- 1.5
+DOT_SIZE_TINY <- 0.5
+AXIS_LINE_SIZE <- 0.1
+LINE_SIZE <- 0.7
+ACC_LINE_SIZE <- 0.25
+LINE_SIZE_WIDE <- 1.3
+LINE_SIZE_NARROW <- 0.2
+FONT_SIZE <- 9
+STROKE_SIZE <- 0.5
+alphaDot <- 0.2
+alphaDensity <- 0.3
+alphaHalf <- 0.5
+barColor <- "#E0E0E0"
+# set colors
+darkgray <- "#222222"
+backColor <- "#FFFFFF"
+grayColor <- "#AAAAAA"
+textColor <- "#222222"
+labelBack <- "#e7e7e7"
+diffColor <- "#958bb2"
+DOT_SIZE <- 2
+DOT_SIZE_SMALL <- 1
+DOT_SIZE_LARGE <- 3
+LINE_SIZE_LIGHT <- 0.15
+LINE_SIZE_MID <- 0.2
+LINE_SIZE <- 0.5
+LINE_SIZE_WIDE <- 1
+FONT_SIZE_SMALL <- 6
+FONT_SIZE <- 8
+FONT_SIZE_BIG <- 10
+BCKGDCOLOR <- "#FFFFFF"
+TEXT_COLOR <- "#444444"
+LINE_COLOR <- "#444444"
+LINE_COLOR_LIGHT <- "#dddddd"
+
+vcolor <- "#AAAAAA"
+# FOURPALETTE <- c("#999999", )
+FOURPALETTE <- c( "#5c87e0", "#5fad06", "#ffa100", "#999999") #"#67a82f", 
+THREEPALETTE <- c( "#5c87e0", "#5fad06", "#ffa100") #"#67a82f", 
+FIVEPALETTE <- c(diffColor, "#5c87e0", "#5fad06", "#ffa100", "#999999") #"#67a82f", 
+CBPALETTE2 <- c("#799daf", "#E5625C", "#0488d4",  "#777777" )
+CBPALETTE3 <- c("#0488d4", "#777777")
+
+DENSITY_HEIGHT <- 0.8
+REF_HEIGHT <- 0.02
+Y_EXPAND <- c(0.05, 0.05)
+X_EXPAND <- c(0.01, 0.01)
+ACC_LINE_TYPE <- 'dashed'
+ACC_LINE_COLOR <- "#BBBBBB"
+MEAN_HEIGHT <- 0.85
+BANDWIDTH_SMALL <- 0.025
+BANDWIDTH_MID <- 0.05
+BANDWIDTH_LARGE <- 0.2
+BANDWIDTH_HUGE <- 0.4
+BANDWIDTH_VERY_LARGE <- 0.5
+ABSERROR_COLOR <- "#5492cc"
+REACT_COLOR <- "#bfbfbf"#"#EAAA2A"
+
+
+
+# average comfortable level: explanation x vis
+t <- theme(
+                                      #line,
+                                      #rect,
+                                      #text,
+  title = element_text(size = FONT_SIZE_BIG, colour = TEXT_COLOR, face = "bold", vjust = 1), 
+                                      #aspect.ratio,
+  axis.title.x = element_text(size = FONT_SIZE, colour = TEXT_COLOR, face = "bold", vjust = -0.5), 
+  axis.title.y = element_text(size = FONT_SIZE,  colour = TEXT_COLOR, angle = 90, face = "bold", vjust = 0.5), 
+                                      #?axis.title.x.top,
+                                      #?axis.title.x.bottom,
+  axis.text = element_text(size = FONT_SIZE,  colour = TEXT_COLOR, face = "plain"), 
+                                      #?axis.title.y.left,
+                                      #?axis.title.y.right,
+  #axis.text.x,
+                                      #?axis.text.x.top,
+                                      #?axis.text.x.bottom,
+  #axis.text.y,
+                                      #?axis.text.y.left,
+                                      #?axis.text.y.right,
+  axis.ticks = element_line(colour = LINE_COLOR, size = LINE_SIZE_LIGHT, linetype = "solid"),
+  #axis.ticks.x,
+                                      #?axis.ticks.x.top,
+                                      #?axis.ticks.x.bottom,
+  #axis.ticks.y,
+                                      #?axis.ticks.y.left,
+                                      #?axis.ticks.y.right,
+  axis.ticks.length = unit(.1, "lines"),
+  #axis.ticks.length.x,
+                                      #?axis.ticks.length.x.top,
+                                      #?axis.ticks.length.x.bottom,
+  #axis.ticks.length.y,
+                                      #?axis.ticks.length.y.left,
+                                      #?axis.ticks.length.y.right,
+  axis.line = element_line(colour = LINE_COLOR, size = LINE_SIZE_LIGHT, linetype = "solid"),
+  #axis.line.x,
+                                      #?axis.line.x.top,
+                                      #?axis.line.x.bottom,
+  #axis.line.y,
+                                      #?axis.line.y.left,
+                                      #?axis.line.y.right,
+  legend.background = element_blank(),
+  legend.margin = margin(1, 1, 1, 1),
+  legend.spacing = unit(0.5, "lines"),
+                                      #?legend.spacing.x,
+                                      #?legend.spacing.y,
+  legend.key = element_blank(),
+  legend.key.size = unit(1, "lines"),
+  #legend.key.height,
+  #legend.key.width,
+  legend.text = element_text(size = FONT_SIZE_SMALL,  colour = TEXT_COLOR),
+  legend.text.align = 0,#left
+  legend.title = element_text(size = FONT_SIZE_SMALL, colour = TEXT_COLOR, vjust = 0.5),
+  legend.title.align = 0,#left
+  legend.position = "top",
+  #legend.direction, #auto
+  legend.justification = "center",
+  #legend.box = element_rect(fill = NA, colour = LINE_COLOR, size = 0.1), #auto
+  legend.box.just = "left", 
+  legend.box.margin = margin(1, 1, 1, 1),
+  legend.box.background = element_blank(),
+  legend.box.spacing = unit(1, "lines"),
+  panel.background = element_blank(),
+  panel.border = element_blank(),
+  panel.spacing = unit(1, "lines"),
+  #panel.spacing.x,
+  #panel.spacing.y,
+  #panel.grid,
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  #panel.grid.major.y = element_line(colour = LINE_COLOR_LIGHT, size = LINE_SIZE_LIGHT, linetype = "solid"),
+  #panel.grid.major.y,
+  #panel.grid.minor.x,
+  #panel.grid.minor.y, 
+  panel.ontop = TRUE,
+  plot.background = element_blank(),
+  plot.title  = element_text(size = FONT_SIZE_BIG,  colour = TEXT_COLOR, hjust = 0.5, vjust = 2),
+  #?plot.title.position,
+  #plot.subtitle,
+  plot.caption = element_text(size = FONT_SIZE_BIG,  colour = TEXT_COLOR, hjust = 0.5, vjust = 2),
+  #?plot.caption.position,
+  #?plot.tag,
+  plot.tag.position = "top",
+  plot.margin = margin(5, 3, 5, 3),
+  strip.background = element_blank(),
+  #strip.background.x,
+  #strip.background.y,
+  strip.placement = "outside",
+  strip.text = element_text(size = FONT_SIZE,  colour = TEXT_COLOR, hjust = 0.5, vjust = 1.1),
+  #strip.text.x,
+  #strip.text.y,
+  #strip.switch.pad.grid,
+  #strip.switch.pad.wrap,
+  complete = FALSE,
+  validate = TRUE
+)
+
+
+theme_set(t)
+
+```
+
+```{r load-data message = FALSE}
+
+metas <- read.csv("../data/metas.csv", stringsAsFactors = F, header = T)
+trials_all <- read.csv("../data/trials.csv", stringsAsFactors = F, header = T)
+
+trials_all <- trials_all %>%
+          filter(TrialStatus == "main") %>% #drop practice trial
+          mutate(Error = TrialAnswer - TrialIntAccuracy,
+                 ErrorMagnitude = abs(Error),
+                 ResponseTime = (TrialVisualizationEnd - TrialVisualizationStart) / 1000,
+                 LogResponseTime = log(ResponseTime)) %>% # log transform
+      filter(!(ParticipantID == "P7" & SessionIndex == 0 & TrialStatus == "main" & TrialIndex == 16)) %>%  # filter mistakes
+      filter(!(ParticipantID == "P9" & SessionIndex == 2 & TrialStatus == "main" & TrialIndex == 17)) %>% 
+      filter(!(ParticipantID == "P11" & SessionIndex == 0 & TrialStatus == "main"  & TrialIndex == 12)) %>% 
+      filter(!(ParticipantID == "P20" & SessionIndex == 3 & TrialStatus == "main" & TrialIndex == 5)) %>% 
+      filter(!(ParticipantID == "P24" & SessionIndex == 0 & TrialStatus == "main"  & TrialIndex == 26)) %>% 
+      filter(ErrorMagnitude < 51) %>% 
+      mutate(Stereo = recode(FactorStereo, yes = 1, no =-1),
+             Motion = recode(FactorMotion, yes = 1, no =-1),
+             Perspective = recode(FactorPerspective, yes = 1, no =-1),
+             Shading = recode(FactorShading, `shading-1` = 0, `shading-2` =1, `flat`=-1, `no` = -1),
+             Dataset = recode(TrialDataset, "cifar10" = 1, "babi-q1" = -1),
+             Dimension = recode(Dim, `2` = -1, `3` = 1),
+             vStereo = recode(FactorStereo, yes = "HMD", no ="Desktop"),
+             vMotion = recode(FactorMotion, yes = "Motion", no ="No Motion"),
+             vPerspective = recode(FactorPerspective, yes = "Perspective", no ="Orthographic"),
+             vShading = recode(FactorShading, `flat`="Flat Shading", `no` = "Flat Shading", `shading-1` = "Simple Shading", `shading-2` = "AO Shading"),
+             vDimension = recode(Dim, `2` = "2D t-SNE", `3` = "3D t-SNE"),
+             vShadingDimen = paste(vShading, vDimension, sep=" ○ "),
+             vDataset = recode(TrialDataset, "cifar10" = "CIFAR10", "babi-q1" = "bAbI"),
+             AllFactors = paste(vStereo, vMotion, vPerspective, vShading, vDimension, sep=" ○ ")
+             ) 
+
+
+trials <- trials_all %>%
+  select(ParticipantID, ErrorMagnitude, ResponseTime, Stereo, Motion, Perspective, Shading, Dimension, Dataset)
+
+vtrials <- trials_all %>%
+  select(ParticipantID, ErrorMagnitude, ResponseTime, vStereo, vMotion, vPerspective, vShading, vDimension, vDataset, AllFactors)
+
+trials_3d <- subset(trials, Dimension == "1")
+
+```
+
+
+# Plot raw data
+
+```{r plot-raw, fig.height=15, fig.width=10}
+
+g_raw_error <- vtrials %>%
+         ggplot(mapping = aes(x = ErrorMagnitude)) +
+         facet_wrap(AllFactors ~ .,ncol = 3, scales = "fixed") +
+         #geom_point(alpha = 0.2, stroke = 0) + 
+         geom_histogram(binwidth = 2, fill = "lightblue", stat="count") +
+         ggtitle("raw data - error magnityde (%)")
+   
+g_raw_error
+
+g_raw_time <- vtrials %>%
+         ggplot(mapping = aes(x = ResponseTime)) +
+         facet_wrap(AllFactors ~ .,ncol = 3) +
+         #geom_point(alpha = 0.2, stroke = 0) + 
+         geom_histogram(binwidth = 2, fill = "lightgray") +
+         ggtitle("raw data - response time  (s)")
+   
+g_raw_time
+```
+
+
+
+```{r detect-cores, include = FALSE}
+  # detect the number of cores and force to run a chain on each core
+  N_CORES = detectCores()
+  rstan_options(auto_write = TRUE)
+  options(mc.cores = parallel::detectCores())
+```
+
+```{r MCMC-settings, include = FALSE}
+  N_ITER = 4000
+  N_WARMUP = 2000
+  N_THIN = 1
+  N_CHAINS = 2
+  DELTA = 0.999
+  TREE_DEPTH = 20
+```
+
+
+```{r mean-effects, message=FASLE, warning = FALSE}
+
+REBUILD_FLAG = FALSE
+
+if(REBUILD_FLAG){
+
+  m_error_hurdle_gamma <- bf(ErrorMagnitude ~  
+                         0 + Intercept + 
+                         Stereo*Motion*Perspective*Shading*Dataset +  
+                         Stereo*Dataset*Dimension + 
+                         (1 + Dimension | ParticipantID), 
+                         family = hurdle_gamma(link = "log")
+                       ) 
+  
+  get_prior(m_error_hurdle_gamma, data = trials)
+
+  
+
+    
+  m_brms_error_hurdle_gamma <<- brm(m_error_hurdle_gamma, 
+                           data = trials, 
+                           family = hurdle_gamma(link = "log"), 
+                           prior = c(
+                              prior(normal(0, 2.5), class = "b"),
+                              prior(normal(0, 25),  class = "b", coef = "Intercept"), 
+                              prior(gamma(1, 10), class = "shape"),
+                              prior(student_t(3, 0, 5), class = "sd")
+                            ), 
+                            chains = N_CHAINS, iter = N_ITER, warmup = N_WARMUP, thin = N_THIN, cores = N_CORES,
+                            control = list(adapt_delta = DELTA, max_treedepth = TREE_DEPTH))
+  
+  saveRDS(file = "rds/m_brms_error_hurdle_gamma.rds", m_brms_error_hurdle_gamma)
+  
+}else{
+  m_brms_error_hurdle_gamma <<- readRDS("rds/m_brms_error_hurdle_gamma.rds")
+}
+  
+summary(m_brms_error_hurdle_gamma)
+```
+
+
+```{r m-time-motion}
+
+if(REBUILD_FLAG == TRUE){
+  
+  trials <- trials %>%
+      mutate(cen = ifelse(ResponseTime > 60, "left", "none"))
+
+  m_time_gamma_motion <- bf(ResponseTime | cens(cen) ~  
+                      0 + Intercept +
+                      Stereo*Motion*Perspective*Shading*Dataset +  
+                      Stereo*Dataset*Dimension + 
+                      (1 + Motion | ParticipantID),
+                      shape ~ 0 + Intercept + Motion,
+                      family = Gamma(link="log")
+                     ) 
+    
+  priors_time_gamma_motion <- c(
+                set_prior("normal(0, 2.5)", class = "b"),
+                set_prior("normal(0, 30)", class = "b", coef = "Intercept"), 
+                #prior(gamma(1, 20), class = "shape"),
+                set_prior("student_t(3, 0, 10)", class = "sd")
+                ) 
+    
+  m_brms_time_gamma_motion <<- brm(m_time_gamma_motion, 
+                              data = trials, family = Gamma(link="log"),  prior = priors_time_gamma_motion, 
+                              chains = N_CHAINS, iter = N_ITER, warmup = N_WARMUP, thin = N_THIN, cores = N_CORES,
+                              control = list(adapt_delta = DELTA, max_treedepth = TREE_DEPTH))
+  
+  saveRDS(file = "rds/m_brms_time_gamma_motion.rds", m_brms_time_gamma_motion)
+  
+}else{
+  
+  m_brms_time_gamma_motion <<- readRDS("rds/m_brms_time_gamma_motion.rds")
+}
+
+```
+
+```{r m-mean-time-gamma}
+
+if(REBUILD_FLAG){
+  
+  trials <- trials %>%
+      mutate(cen = ifelse(ResponseTime > 60, "left", "none"))
+
+  m_time_gamma_motion_simple <- bf(ResponseTime | cens(cen) ~  
+                      0 + Intercept +
+                      Stereo*Motion*Perspective*Shading*Dataset +  
+                      Stereo*Dataset*Dimension + 
+                      (1 + Motion | ParticipantID),
+                      family = Gamma(link="log")
+                     ) 
+    
+  priors_time_gamma_motion_simple <- c(
+                  prior(normal(0, 2.5), class = "b"),
+                  prior(normal(0, 30), class = "b", coef = "Intercept"), 
+                  prior(gamma(1, 20), class = "shape"),
+                  prior(student_t(3, 0, 10), class = "sd")
+                ) 
+    
+  m_brms_time_gamma_motion_simple <<- brm(m_time_gamma_motion, 
+                              data = trials, family = Gamma(link="log"),  prior = priors_time_gamma_motion, 
+                              chains = N_CHAINS, iter = N_ITER, warmup = N_WARMUP, thin = N_THIN, cores = N_CORES,
+                              control = list(adapt_delta = DELTA, max_treedepth = TREE_DEPTH))
+  
+  saveRDS(file = "rds/m_brms_time_gamma_motion_simple.rds", m_brms_time_gamma_motion_simple)
+  
+}else{
+  m_brms_time_gamma_motio_simplen <<- readRDS("rds/m_brms_time_gamma_motion_simple.rds")
+}
+
+```
+
+```{r}
+post <- trials %>%
+  add_fitted_draws(m_brms_mean_time_gamma, value = "post_time", n = 100, re_formula = NULL, allow_new_levels = FALSE)
+
+
+g <- ggplot() + 
+  geom_density(data = post, mapping = aes(x = post_time, group = .draw), alpha = 0.01) +
+    geom_density(data = trials, mapping = aes(x = ResponseTime), color = "red")
+
+g
+  
+```
+
+# Extra figures
+
+```{r plot-demographics, message = FALSE}
+
+demographics <- metas %>% select(familiarML, familiarDR, familiarVIS, familiarVR)
+demographics_stack <- stack(demographics)
+demographics_stack$overall <- paste(demographics_stack$values, demographics_stack$ind, sep = " ")
+
+demographics_table <- aggregate(data = demographics_stack, values ~ overall, length)
+demographics_table$item <- sapply(demographics_table$overall, function(x){return(strsplit(x, split = " ")[[1]][2])})  
+demographics_table$option <- sapply(demographics_table$overall, function(x){return(strsplit(x, split = " ")[[1]][1])})  
+
+g_demographics <- ggplot() %>%
+  + geom_tile(data = demographics_table, aes(x = option, y = item, fill = values)) %>%
+  + scale_fill_continuous(low = "#ffffff", high = ABSERROR_COLOR, limits = c(0,24), breaks = c(0, 8, 16, 24)) + xlab("scale") + ylab("")
+g_demographics
+
+ggsave(file = "pic/demographics.pdf", g_demographics, width = 2.7, height = 2, units = "in")
+
+```
+
+```{r plot-acc-bars, message = FALSE}
+
+acc1 <- c(0.3978, 0.4054, 0.5998, 0.602, 0.605, 0.6052, 0.6528, 0.653, 0.6614, 0.6762, 0.6956, 0.7044, 0.713, 0.7162, 0.725, 0.73, 0.7326, 0.7362, 0.7398, 0.745, 0.7458, 0.7476, 0.751, 0.7538, 0.7668, 0.767, 0.7686, 0.7686, 0.769, 0.7744, 0.7748, 0.7754, 0.7758, 0.7778, 0.7788, 0.7794, 0.7806, 0.7828, 0.7834, 0.7848, 0.7858, 0.7882, 0.7888, 0.789, 0.7894, 0.7914, 0.7932, 0.7946, 0.7948, 0.7952, 0.7954, 0.7966, 0.7968, 0.7976, 0.799, 0.7992, 0.801, 0.8014, 0.8018, 0.8026, 0.8028, 0.8032, 0.804, 0.804, 0.8046, 0.805, 0.8056, 0.8058, 0.806, 0.8066, 0.8068, 0.8072, 0.8076, 0.808, 0.8084, 0.8098, 0.8108, 0.8108, 0.8108, 0.8118, 0.812, 0.8132, 0.8138, 0.8138, 0.8148, 0.816, 0.816, 0.8172, 0.8176, 0.8182, 0.8192, 0.8202, 0.8204, 0.8204, 0.8206, 0.8206, 0.8206, 0.8212, 0.8212, 0.822, 0.8224, 0.824, 0.8244, 0.8254, 0.8258, 0.8268, 0.8274, 0.8276, 0.8286, 0.8286, 0.829, 0.8302, 0.8314, 0.8314, 0.8326, 0.833, 0.8332, 0.8338, 0.834, 0.8352, 0.8358, 0.8364, 0.837, 0.8384, 0.8386, 0.8386, 0.8396, 0.8406, 0.8408, 0.8408, 0.8414, 0.842, 0.8428, 0.8436, 0.8442, 0.8444, 0.8444, 0.8446, 0.845, 0.8452, 0.847, 0.8472, 0.8472, 0.8474, 0.8474, 0.848, 0.85, 0.8504, 0.8506, 0.8514, 0.8516, 0.8518, 0.8534, 0.855, 0.8578, 0.858, 0.8582, 0.8584, 0.8584, 0.861, 0.8634, 0.8662, 0.8912, 0.8914, 0.8922, 0.8942, 0.8954, 0.896, 0.896, 0.896, 0.8962, 0.8964, 0.8966, 0.8968, 0.8972, 0.8974, 0.8978, 0.8978, 0.8978, 0.8982, 0.8982, 0.8984, 0.8984, 0.8986, 0.899, 0.8992, 0.8992, 0.8994, 0.8996, 0.8998, 0.8998, 0.8998, 0.8998, 0.8998, 0.9, 0.9, 0.9002, 0.9002, 0.9002, 0.9002, 0.9002, 0.9004, 0.9006, 0.9006, 0.9008, 0.901, 0.901, 0.9012, 0.9012, 0.9014, 0.9014, 0.9014, 0.9016, 0.9018, 0.9018, 0.9018, 0.902, 0.902, 0.902, 0.9022, 0.9024, 0.9026, 0.9026, 0.9026, 0.9026, 0.9026, 0.9028, 0.9028, 0.903, 0.903, 0.903, 0.903, 0.903, 0.9032, 0.9032, 0.9036, 0.9036, 0.9036, 0.9036, 0.9036, 0.9038, 0.9038, 0.9038, 0.9038, 0.9044, 0.9044, 0.9044, 0.9044, 0.9046, 0.9046, 0.905, 0.9052, 0.9052, 0.9052, 0.9054, 0.9054, 0.9056, 0.9056, 0.9056, 0.9058, 0.9058, 0.9058, 0.9058, 0.906, 0.906, 0.906, 0.906, 0.906, 0.9062, 0.9064, 0.9064, 0.9066, 0.9066, 0.9068, 0.9068, 0.9068, 0.9068, 0.907, 0.907, 0.9074, 0.9074, 0.9074, 0.908, 0.908, 0.9086, 0.9092, 0.9092, 0.9092, 0.9092, 0.9094, 0.9094, 0.9098, 0.9098, 0.91, 0.9106, 0.9114, 0.9114, 0.9126, 0.913, 0.9146)
+
+
+acc2 <- c(0.192, 0.246, 0.394, 0.405, 0.427, 0.439, 0.476, 0.485, 0.488, 0.488, 0.49, 0.491, 0.491, 0.492, 0.492, 0.494, 0.496, 0.496, 0.497, 0.497, 0.497, 0.498, 0.498, 0.499, 0.499, 0.499, 0.5, 0.5, 0.5, 0.5, 0.5, 0.501, 0.504, 0.505, 0.505, 0.506, 0.506, 0.507, 0.507, 0.508, 0.508, 0.508, 0.508, 0.509, 0.509, 0.51, 0.51, 0.511, 0.511, 0.512, 0.512, 0.514, 0.515, 0.515, 0.515, 0.516, 0.522, 0.526, 0.53, 0.531, 0.531, 0.531, 0.534, 0.542, 0.548, 0.559, 0.564, 0.6, 0.625, 0.658, 0.681, 0.697, 0.722, 0.724, 0.726, 0.731, 0.735, 0.739, 0.739, 0.739, 0.739, 0.743, 0.747, 0.748, 0.753, 0.762, 0.764, 0.767, 0.776, 0.79, 0.79, 0.792, 0.795, 0.802, 0.803, 0.81, 0.813, 0.813, 0.817, 0.819, 0.82, 0.82, 0.823, 0.824, 0.824, 0.826, 0.828, 0.828, 0.834, 0.837, 0.838, 0.839, 0.841, 0.841, 0.842, 0.842, 0.843, 0.843, 0.844, 0.847, 0.848, 0.852, 0.853, 0.854, 0.854, 0.854, 0.856, 0.857, 0.857, 0.857, 0.859, 0.86, 0.862, 0.863, 0.863, 0.864, 0.865, 0.866, 0.871, 0.871, 0.874, 0.874, 0.875, 0.876, 0.879, 0.88, 0.881, 0.883, 0.883, 0.883, 0.884, 0.886, 0.886, 0.886, 0.887, 0.887, 0.888, 0.891, 0.891, 0.893, 0.893, 0.894, 0.896, 0.896, 0.896, 0.897, 0.898, 0.899, 0.901, 0.901, 0.901, 0.901, 0.902, 0.903, 0.904, 0.904, 0.904, 0.905, 0.905, 0.905, 0.907, 0.908, 0.908, 0.909, 0.91, 0.91, 0.91, 0.911, 0.911, 0.911, 0.911, 0.912, 0.912, 0.913, 0.913, 0.914, 0.917, 0.917, 0.92, 0.922)
+
+acc3 <- c(0.838, 0.839, 0.8405, 0.8505, 0.8575, 0.8575, 0.865, 0.872, 0.872, 0.873, 0.8735, 0.8745, 0.882, 0.882, 0.8835, 0.885, 0.8865, 0.887, 0.887, 0.892, 0.892, 0.8935, 0.895, 0.8955, 0.896, 0.897, 0.8975, 0.898, 0.898, 0.8985, 0.8985, 0.899, 0.8995, 0.8995, 0.8995, 0.9, 0.9015, 0.902, 0.9025, 0.9035, 0.904, 0.9045, 0.9045, 0.905, 0.9055, 0.9055, 0.906, 0.906, 0.9075, 0.908, 0.9085, 0.9085, 0.9085, 0.9085, 0.9095, 0.9095, 0.9105, 0.9105, 0.9105, 0.911, 0.9115, 0.9115, 0.9115, 0.9115, 0.9125, 0.9125, 0.9125, 0.9125, 0.9125, 0.9125, 0.913, 0.9135, 0.9135, 0.9135, 0.914, 0.914, 0.914, 0.9145, 0.915, 0.915, 0.915, 0.9155, 0.9155, 0.9155, 0.9155, 0.916, 0.916, 0.916, 0.9165, 0.9165, 0.917, 0.917, 0.917, 0.917, 0.9175, 0.918, 0.918, 0.918, 0.918, 0.918, 0.918, 0.918, 0.9185, 0.9185, 0.9185, 0.9185, 0.9185, 0.919, 0.919, 0.919, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.92, 0.92, 0.92, 0.92, 0.9205, 0.9205, 0.9205, 0.9205, 0.921, 0.921, 0.9215, 0.9215, 0.9215, 0.9215, 0.9215, 0.922, 0.922, 0.922, 0.922, 0.922, 0.922, 0.9225, 0.9225, 0.9225, 0.9225, 0.923, 0.923, 0.923, 0.923, 0.9235, 0.9235, 0.9235, 0.9235, 0.9235, 0.9235, 0.924, 0.924, 0.924, 0.924, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.925, 0.925, 0.925, 0.925, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.926, 0.926, 0.926, 0.926, 0.926, 0.9265, 0.9265, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.9275, 0.9275, 0.9275, 0.9275, 0.928, 0.928, 0.928, 0.928, 0.928, 0.928, 0.928, 0.928, 0.9285, 0.9285, 0.9285, 0.9285, 0.9285, 0.9285, 0.929, 0.929, 0.929, 0.929, 0.929, 0.929, 0.9295, 0.9295, 0.93, 0.93, 0.93, 0.93, 0.93, 0.9305, 0.9305, 0.9305, 0.931, 0.9315, 0.9315, 0.9315, 0.9315, 0.932, 0.9325, 0.9325, 0.933, 0.9335, 0.9335, 0.9335, 0.934, 0.9345, 0.9345, 0.936, 0.936, 0.937, 0.937, 0.94, 0.9405)
+
+
+g_bar1 <- ggplot() %>%
+         + geom_linerange(aes(ymax = 1, ymin = 0, x = acc1), alpha = 0.2, color = ABSERROR_COLOR) %>%
+         + scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0))%>%
+         + scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
+
+g_bar2 <- ggplot() %>%
+  + geom_linerange(aes(ymax = 1, ymin = 0, x = acc2), alpha = 0.2, color = ABSERROR_COLOR)%>%
+  + scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0))%>%
+  + scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
+
+g_bar3 <- ggplot() %>%
+  + geom_linerange(aes(ymax = 1, ymin = 0, x = acc3), alpha = 0.2, color = ABSERROR_COLOR)%>%
+  + scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0))%>%
+  + scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
+
+
+
+
+ggsave(file = "pic/acc_bar.pdf",  plot_grid(g_bar1, g_bar2, g_bar3, ncol = 1,align="v"), width = 4, height = 1.6, units = "in")
+
+```

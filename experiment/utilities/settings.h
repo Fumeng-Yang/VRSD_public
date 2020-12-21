@@ -394,7 +394,7 @@ struct Settings
 
     const float magic_VR_InputThreshold = 0.2;
     const float magic_VR_projectionOffset = 0.5;
-    const float magic_VR_draggingScaleFactor = 2300;
+    const float magic_VR_draggingScaleFactor = 1000;
     const float magic_textPlaneScaleFactor = 1.0f / 300.0f;
     const float magic_depthMapScaleFactor = 1.2f;
     const float magic_textPlaneZ = -30.f;
