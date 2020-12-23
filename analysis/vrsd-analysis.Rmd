@@ -10,34 +10,34 @@ output:
     df_print: kable
 ---
 
+# Data Analysis for ``The effects of visual cues on understanding classification in immersive scatterplots''
 
 ```{r setup, include=FALSE}
-    knitr::opts_chunk$set(fig.width=7.1666, fig.height=5) 
+    knitr::opts_chunk$set(fig.width=3, fig.height=3) 
     # clean up workspace
     rm(list = ls(all.names = TRUE)) 
     setwd("/Volumes/Data/Github/VRSD_public/analysis")
 ```
 
 
+dependencies
 ```{r load-packages message=FALSE}
-
 library(ggplot2) #core graphics package
 library(ggridges) # ggarrange
 library(ggpubr)
 
 library(tidyverse) # data manipulation
-library(forcats)
 
 library(rstan) #detectCores
 library(brms) # core pack
 library(parallel) #detectCores
 library(modelr)
-
+library(ggtext)
 
 library(tidybayes) 
 library(data.table) #%like%
 
-
+REBUILD_FLAG <<- FALSE
 ```
 
 ```{r style-setting include = FALSE, message = FALSE}
@@ -98,10 +98,10 @@ BANDWIDTH_MID <- 0.05
 BANDWIDTH_LARGE <- 0.2
 BANDWIDTH_HUGE <- 0.4
 BANDWIDTH_VERY_LARGE <- 0.5
-ABSERROR_COLOR <- "#5492cc"
-REACT_COLOR <- "#bfbfbf"#"#EAAA2A"
-
-
+ERROR_COLOR <- "#4a65ba"
+TIME_COLOR <- "#8bba45"
+PALETTE_ERROR <- c("#cbd5f2", "#899cd6", ERROR_COLOR)
+PALETTE_TIME <- c("#e6f7cb", "#b5d683", TIME_COLOR)
 
 # average comfortable level: explanation x vis
 t <- theme(
@@ -134,14 +134,14 @@ t <- theme(
   #axis.ticks.length.x,
                                       #?axis.ticks.length.x.top,
                                       #?axis.ticks.length.x.bottom,
-  #axis.ticks.length.y,
+  axis.ticks.length.y = unit(0, "lines"),
                                       #?axis.ticks.length.y.left,
                                       #?axis.ticks.length.y.right,
-  axis.line = element_line(colour = LINE_COLOR, size = LINE_SIZE_LIGHT, linetype = "solid"),
+  axis.line.x = element_line(colour = LINE_COLOR, size = LINE_SIZE_LIGHT, linetype = "solid"),
   #axis.line.x,
                                       #?axis.line.x.top,
                                       #?axis.line.x.bottom,
-  #axis.line.y,
+  axis.line.y = element_blank(),
                                       #?axis.line.y.left,
                                       #?axis.line.y.right,
   legend.background = element_blank(),
@@ -171,27 +171,27 @@ t <- theme(
   #panel.spacing.x,
   #panel.spacing.y,
   #panel.grid,
-  panel.grid.major = element_blank(),
+  panel.grid.major = element_line(colour = LINE_COLOR_LIGHT, size = LINE_SIZE_LIGHT, linetype = "solid"),
   panel.grid.minor = element_blank(),
   #panel.grid.major.y = element_line(colour = LINE_COLOR_LIGHT, size = LINE_SIZE_LIGHT, linetype = "solid"),
   #panel.grid.major.y,
   #panel.grid.minor.x,
   #panel.grid.minor.y, 
-  panel.ontop = TRUE,
+  panel.ontop = FALSE,
   plot.background = element_blank(),
-  plot.title  = element_text(size = FONT_SIZE_BIG,  colour = TEXT_COLOR, hjust = 0.5, vjust = 2),
+  plot.title  = element_text(size = FONT_SIZE_BIG,  colour = TEXT_COLOR, hjust = 0.5, vjust = 3.5),
   #?plot.title.position,
   #plot.subtitle,
-  plot.caption = element_text(size = FONT_SIZE_BIG,  colour = TEXT_COLOR, hjust = 0.5, vjust = 2),
+  plot.caption = element_text(size = FONT_SIZE_BIG,  colour = TEXT_COLOR, hjust = 0.5, vjust = 3.5),
   #?plot.caption.position,
   #?plot.tag,
   plot.tag.position = "top",
-  plot.margin = margin(5, 3, 5, 3),
+  plot.margin = margin(8, 3, 6, 3),
   strip.background = element_blank(),
   #strip.background.x,
   #strip.background.y,
   strip.placement = "outside",
-  strip.text = element_text(size = FONT_SIZE,  colour = TEXT_COLOR, hjust = 0.5, vjust = 1.1),
+  strip.text = element_text(size = FONT_SIZE,  colour = TEXT_COLOR, hjust = 0.5, vjust = 2),
   #strip.text.x,
   #strip.text.y,
   #strip.switch.pad.grid,
@@ -209,6 +209,7 @@ theme_set(t)
 
 metas <- read.csv("../data/metas.csv", stringsAsFactors = F, header = T)
 trials_all <- read.csv("../data/trials.csv", stringsAsFactors = F, header = T)
+seper <- " ○ "
 
 trials_all <- trials_all %>%
           filter(TrialStatus == "main") %>% #drop practice trial
@@ -222,30 +223,26 @@ trials_all <- trials_all %>%
       filter(!(ParticipantID == "P20" & SessionIndex == 3 & TrialStatus == "main" & TrialIndex == 5)) %>% 
       filter(!(ParticipantID == "P24" & SessionIndex == 0 & TrialStatus == "main"  & TrialIndex == 26)) %>% 
       filter(ErrorMagnitude < 51) %>% 
-      mutate(Stereo = recode(FactorStereo, yes = 1, no =-1),
-             Motion = recode(FactorMotion, yes = 1, no =-1),
-             Perspective = recode(FactorPerspective, yes = 1, no =-1),
-             Shading = recode(FactorShading, `shading-1` = 0, `shading-2` =1, `flat`=-1, `no` = -1),
-             Dataset = recode(TrialDataset, "cifar10" = 1, "babi-q1" = -1),
-             Dimension = recode(Dim, `2` = -1, `3` = 1),
-             vStereo = recode(FactorStereo, yes = "HMD", no ="Desktop"),
-             vMotion = recode(FactorMotion, yes = "Motion", no ="No Motion"),
-             vPerspective = recode(FactorPerspective, yes = "Perspective", no ="Orthographic"),
-             vShading = recode(FactorShading, `flat`="Flat Shading", `no` = "Flat Shading", `shading-1` = "Simple Shading", `shading-2` = "AO Shading"),
-             vDimension = recode(Dim, `2` = "2D t-SNE", `3` = "3D t-SNE"),
-             vShadingDimen = paste(vShading, vDimension, sep=" ○ "),
-             vDataset = recode(TrialDataset, "cifar10" = "CIFAR10", "babi-q1" = "bAbI"),
-             AllFactors = paste(vStereo, vMotion, vPerspective, vShading, vDimension, sep=" ○ ")
+      mutate(  # manual recode levels using orthogonal contrast coding       
+             AllFactors = paste(FactorStereo, FactorMotion, FactorPerspective, FactorShading, Dim, sep = seper),
+             Stereo = recode(FactorStereo, yes = 0.5, no = -0.5),
+             Motion = recode(FactorMotion, yes = 0.5, no = -0.5),
+             Perspective = recode(FactorPerspective, yes = 0.5, no = -0.5),
+             Shading = recode(FactorShading, `shading-1` = 0, `shading-2` = 0.5, `flat`= -0.5, `no` = -0.5),
+             Dataset = recode(TrialDataset, "cifar10" = 0.5, "babi-q1" = -0.5),
+             Dimension = recode(Dim, `2` = -0.5, `3` = 0.5)
              ) 
 
 
 trials <- trials_all %>%
   select(ParticipantID, ErrorMagnitude, ResponseTime, Stereo, Motion, Perspective, Shading, Dimension, Dataset)
 
-vtrials <- trials_all %>%
-  select(ParticipantID, ErrorMagnitude, ResponseTime, vStereo, vMotion, vPerspective, vShading, vDimension, vDataset, AllFactors)
 
-trials_3d <- subset(trials, Dimension == "1")
+vtrials <- trials_all %>%
+  select(ParticipantID, ErrorMagnitude, ResponseTime, FactorStereo, FactorMotion, FactorPerspective, FactorShading, Dim, TrialDataset, AllFactors)
+
+
+trials_3d <- subset(trials, Dimension == 0.5)
 
 ```
 
@@ -256,24 +253,49 @@ trials_3d <- subset(trials, Dimension == "1")
 
 g_raw_error <- vtrials %>%
          ggplot(mapping = aes(x = ErrorMagnitude)) +
-         facet_wrap(AllFactors ~ .,ncol = 3, scales = "fixed") +
-         #geom_point(alpha = 0.2, stroke = 0) + 
-         geom_histogram(binwidth = 2, fill = "lightblue", stat="count") +
-         ggtitle("raw data - error magnityde (%)")
+         facet_wrap(AllFactors ~ .,ncol = 3, scales = "free") +
+         coord_cartesian(xlim = c(0, 50), ylim = c(0, 30)) + 
+         geom_histogram(binwidth = 2, fill = "lightblue", color = "white") +
+         ggtitle("raw data - error magnitude (%)") + 
+         xlab ("error magnitude ") + ylab("count")
    
 g_raw_error
 
+ggsave(g_raw_error, filename = "pic/g_raw_error.pdf", width = 10, height = 10, units = "in")
+
 g_raw_time <- vtrials %>%
          ggplot(mapping = aes(x = ResponseTime)) +
-         facet_wrap(AllFactors ~ .,ncol = 3) +
-         #geom_point(alpha = 0.2, stroke = 0) + 
-         geom_histogram(binwidth = 2, fill = "lightgray") +
-         ggtitle("raw data - response time  (s)")
+         facet_wrap(AllFactors ~ .,ncol = 3, scales = "free") +
+         coord_cartesian(xlim = c(0, 62), ylim = c(0, 30)) + 
+         geom_histogram(binwidth = 2, fill = "lightgray", color = "white") +
+         ggtitle("raw data - response time  (s)") + 
+         xlab ("response time ") + ylab("count")
    
 g_raw_time
+
+ggsave(g_raw_time, filename = "pic/g_raw_time.pdf", width = 10, height = 10, units = "in")
 ```
 
+```{r model-diagnostics, message=FALSE, warning=FALSE}
 
+model_diagnostics <- function(m, name = "model diagnostics"){
+  print(name)
+  
+  print(summary(m))
+
+  # plot(m)
+  
+  plot(pp_check(m, type = "dens_overlay", nsamples = 100))
+  plot(pp_check(m, type = "stat_2d", nsamples = 100))
+  plot(pp_check(m, type = "error_binned", nsamples = 100))
+  
+  print(loo(m))
+  print(waic(m))
+}
+
+# Valid types are:
+# 'bars', 'bars_grouped', 'boxplot', 'data', 'dens', 'dens_overlay', 'ecdf_overlay', 'error_binned', 'error_hist', 'error_hist_grouped', 'error_scatter', 'error_scatter_avg', 'error_scatter_avg_vs_x', 'freqpoly', 'freqpoly_grouped', 'hist', 'intervals', 'intervals_data', 'intervals_grouped', 'loo_intervals', 'loo_pit', 'loo_pit_overlay', 'loo_pit_qq', 'loo_ribbon', 'ribbon', 'ribbon_data', 'ribbon_grouped', 'rootogram', 'scatter', 'scatter_avg', 'scatter_avg_grouped', 'stat', 'stat_2d', 'stat_freqpoly_grouped', 'stat_grouped', 'violin_grouped'
+```
 
 ```{r detect-cores, include = FALSE}
   # detect the number of cores and force to run a chain on each core
@@ -282,8 +304,9 @@ g_raw_time
   options(mc.cores = parallel::detectCores())
 ```
 
+
 ```{r MCMC-settings, include = FALSE}
-  N_ITER = 4000
+  N_ITER = 5000
   N_WARMUP = 2000
   N_THIN = 1
   N_CHAINS = 2
@@ -292,23 +315,20 @@ g_raw_time
 ```
 
 
-```{r mean-effects, message=FASLE, warning = FALSE}
 
-REBUILD_FLAG = FALSE
-
+```{r error-effects, fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
 if(REBUILD_FLAG){
 
   m_error_hurdle_gamma <- bf(ErrorMagnitude ~  
-                         0 + Intercept + 
-                         Stereo*Motion*Perspective*Shading*Dataset +  
-                         Stereo*Dataset*Dimension + 
-                         (1 + Dimension | ParticipantID), 
-                         family = hurdle_gamma(link = "log")
-                       ) 
+                           0 + Intercept + 
+                           Stereo*Motion*Perspective*Shading*Dataset +  
+                           Stereo*Dataset*Dimension + 
+                           (1 + Dimension | ParticipantID), 
+                           family = hurdle_gamma(link = "identity")
+                        ) 
   
   get_prior(m_error_hurdle_gamma, data = trials)
 
-  
 
     
   m_brms_error_hurdle_gamma <<- brm(m_error_hurdle_gamma, 
@@ -328,12 +348,14 @@ if(REBUILD_FLAG){
 }else{
   m_brms_error_hurdle_gamma <<- readRDS("rds/m_brms_error_hurdle_gamma.rds")
 }
-  
-summary(m_brms_error_hurdle_gamma)
+
+model_diagnostics(m_brms_error_hurdle_gamma)
 ```
 
 
-```{r m-time-motion}
+
+
+```{r time-effects, fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
 
 if(REBUILD_FLAG == TRUE){
   
@@ -368,9 +390,12 @@ if(REBUILD_FLAG == TRUE){
   m_brms_time_gamma_motion <<- readRDS("rds/m_brms_time_gamma_motion.rds")
 }
 
+model_diagnostics(m_brms_time_gamma_motion)
+
+summary(m_brms_time_gamma_motion)
 ```
 
-```{r m-mean-time-gamma}
+```{r time-gamma-effects, fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
 
 if(REBUILD_FLAG){
   
@@ -400,24 +425,292 @@ if(REBUILD_FLAG){
   saveRDS(file = "rds/m_brms_time_gamma_motion_simple.rds", m_brms_time_gamma_motion_simple)
   
 }else{
-  m_brms_time_gamma_motio_simplen <<- readRDS("rds/m_brms_time_gamma_motion_simple.rds")
+  m_brms_time_gamma_motion_simple <<- readRDS("rds/m_brms_time_gamma_motion_simple.rds")
 }
+
+model_diagnostics(m_brms_time_gamma_motion_simple)
 
 ```
 
-```{r}
-post <- trials %>%
-  add_fitted_draws(m_brms_mean_time_gamma, value = "post_time", n = 100, re_formula = NULL, allow_new_levels = FALSE)
 
 
-g <- ggplot() + 
-  geom_density(data = post, mapping = aes(x = post_time, group = .draw), alpha = 0.01) +
-    geom_density(data = trials, mapping = aes(x = ResponseTime), color = "red")
+```{r draw-coefs fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
 
-g
+draw_coefs <- function(m, 
+                       target_coefs, 
+                       title = "", 
+                       fill_color = "white" , 
+                       breaks_x = seq(0, 1, by = 0.5)
+                       ){
+  post_samples <- posterior_samples(m, pars = "b_")
+  
+  b_CIs <-  post_samples %>% 
+            gather(key = "coefs", value = "value") %>% 
+            group_by(coefs) %>%
+            median_qi() %>%
+            ungroup() %>%
+            mutate(lower95 = exp(.lower), upper95 = exp(.upper), median = exp(value))%>%
+            select(coefs, median, lower95, upper95) %>%
+            mutate(coefs = factor(coefs, levels = rev(target_coefs)), 
+                 s_lower95 = round(lower95, 3), s_upper95 = round(upper95, 3),
+                 CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']'))
+    
+  b_samples <-  post_samples %>% 
+    gather(key = "coefs", value = "value") %>% 
+    ungroup() 
+    
+  g <- b_samples %>%
+    filter(coefs %in% target_coefs) %>%
+    mutate(coefs = factor(coefs, levels = rev(target_coefs)), value = exp(value)) %>%
+    ggplot(aes(x = value, y = coefs)) + 
+      stat_slab(fill = fill_color, n = (N_ITER - N_WARMUP) * N_CHAINS) + 
+      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.1, y = coefs, label = CIs), 
+                 size = 2, 
+                 fill = NA, label.color = NA, # remove background and outline
+                 label.padding = grid::unit(rep(0, 4), "pt")) + 
+      geom_vline(xintercept = 1, linetype = "dashed", size = LINE_SIZE) +
+      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, .5))) +
+      coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
+      ggtitle(title) + xlab("exp(beta)") + ylab("") 
+  
+  return(g)
+}
+```
+
+# How do the six manipulated variables affect participants' performance?
+
+```{r RQ1 fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
+
+target_coefs_rq1 <- c("b_Stereo", "b_Motion", "b_Perspective", "b_Shading", "b_Dimension", "b_Dataset")
+
+
+g1_rq1 <- draw_coefs(m_brms_error_hurdle_gamma, 
+                 target_coefs_rq1, 
+                 "Error magnitude (%)", 
+                 ERROR_COLOR, 
+                 breaks_x = seq(0.75, 1.5, by = 0.25))
+g2_rq1 <- draw_coefs(m_brms_time_gamma_motion, 
+                 target_coefs_rq1, 
+                 "Response time (s)",
+                 TIME_COLOR, 
+                 breaks_x = seq(0.85, 2.2, by = 0.45))
+
+g_combined_rq1 <- ggarrange(g1_rq1, g2_rq1, ncol = 2)
+
+ggsave(g_combined_rq1, filename = "pic/RQ1-mean-effects.pdf", width = 8, height = 2.5, units = "in")
+
+g_combined_rq1
   
 ```
 
+# Interaction effects
+
+```{r RQ2 fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
+
+target_coefs_rq2 <- c("b_Stereo:Motion", 
+                  "b_Stereo:Perspective", 
+                  "b_Stereo:Shading", 
+                  "b_Stereo:Dimension", 
+                  "b_Stereo:Dataset", 
+                  "b_Motion:Perspective", 
+                  "b_Motion:Shading", 
+                  "b_Motion:Dataset", 
+                  "b_Perspective:Shading", 
+                  "b_Perspective:Dataset", 
+                  "b_Shading:Dataset", 
+                  "b_Dataset:Dimension")
+
+
+g1_rq2 <- draw_coefs(m_brms_error_hurdle_gamma, 
+                 target_coefs_rq2, 
+                 "Error magnitude (%)", 
+                 ERROR_COLOR, 
+                 breaks_x = seq(0.5, 2.1, by = 0.5))
+g2_rq2 <- draw_coefs(m_brms_time_gamma_motion, 
+                 target_coefs_rq2, 
+                 "Response time (s)",
+                 TIME_COLOR, 
+                 breaks_x = seq(0.5, 2.1, by = 0.5))
+
+g_combined_rq2 <- ggarrange(g1_rq2, g2_rq2, ncol = 2)
+
+ggsave(g_combined_rq2, filename = "pic/RQ2-interaction-effects.pdf", width = 8, height = 3.5, units = "in")
+
+g_combined_rq2
+  
+```
+
+
+```{r draw-post fig.height=2, fig.width=12, warning=FALSE, message=FALSE}
+
+draw_post <- function( m, 
+                       title = "", 
+                       fill_color = "white" , 
+                       palette_in, 
+                       adjust_in,
+                       breaks_x = seq(0, 1, by = 0.5)
+                       ){
+  
+  post_samples <- trials %>%
+    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset) %>%
+    distinct() %>%
+    add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
+    select(-c(".chain", ".iteration"))%>%
+    ungroup()%>%
+    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset, sample_value) %>%
+    gather(key = "levels_names", value = "levels_values", Stereo, Motion, Perspective, Shading, Dimension, Dataset)  %>%
+    mutate(levels_values = factor(levels_values), sample_value = exp(sample_value))
+  
+  b_CIs <-  post_samples %>%
+            group_by(levels_names, levels_values) %>%
+            median_qi()  %>%
+            ungroup() %>%
+            mutate(lower95 = .lower, upper95 = .upper, median = sample_value)%>%
+            mutate(levels_values = factor(levels_values), 
+                 s_lower95 = round(lower95, 3), s_upper95 = round(upper95, 3),
+                 CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']'))
+  
+  g <- post_samples %>%
+      ggplot(aes(x = sample_value, y = levels_names)) +
+      geom_density_ridges(
+                aes(fill = levels_values, color = levels_values), 
+                rel_min_height = 0.001,
+                alpha = 0.5,
+                scale = 0.8,
+                size = 0.5
+                ) +
+      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.2, 
+                                                y = levels_names, 
+                                                color = levels_values, 
+                                                label = CIs), 
+                 label.color = NA,
+                 size = 2, 
+                 fill = NA, 
+                 label.padding = grid::unit(rep(0, 4), "pt")) + 
+      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, .5))) +
+      scale_fill_manual(values = palette_in) + 
+      scale_color_manual(values = palette_in) + 
+      coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
+      ggtitle(title) + xlab("") + ylab("") 
+  
+  return(g)
+}
+
+g1_rq3 <- draw_post(m_brms_error_hurdle_gamma, 
+                 "Error magnitude (%)", 
+                 ERROR_COLOR, 
+                 PALETTE_ERROR,
+                 adjust_in = 1, 
+                 breaks_x = seq(0, 15, by = 5))
+
+g2_rq3 <- draw_post(m_brms_time_gamma_motion, 
+                 "Response time (s)",
+                 TIME_COLOR, 
+                 PALETTE_TIME,
+                 adjust_in = 2, 
+                 breaks_x = seq(0, 45, by = 15))
+
+g_combined_rq3 <- ggarrange(g1_rq3, g2_rq3, ncol = 2)
+
+ggsave(g_combined_rq3, filename = "pic/RQ3-div.pdf", width = 7, height = 3.5, units = "in")
+
+g_combined_rq3
+```
+
+
+```{r draw-all fig.height=15, fig.width=20, warning=FALSE, message=FALSE}
+
+
+ global_order <- NULL
+
+ draw_all <- function( m, 
+                        title = "", 
+                        fill_color = "white" , 
+                        palette_in, 
+                        adjust_in,
+                        breaks_x = seq(0, 1, by = 0.5),
+                        which = "error"
+                        ){
+  
+  post_samples <- trials %>%
+    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset) %>%
+    distinct() %>%
+    add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
+    select(-c(".chain", ".iteration"))%>%
+    ungroup()%>%
+    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset, sample_value) %>%
+    mutate(  Stereo = recode(Stereo,  `0.5` = "HMD", `-0.5` = "Desktop"),
+             Motion = recode(Motion,  `0.5` = "Motion", `-0.5` = "No Motion"),
+             Perspective = recode(Perspective, `0.5` = "Perspective", `-0.5` = "Orthographic"),
+             Shading = recode(Shading, `0` = "Simple Shading", `0.5` = "Ambient Occlusion", `-0.5` = "Flat Shading"),
+             Dataset = recode(Dataset, `0.5` = "CIFAR-10", `-0.5` =  "bAbI"),
+             Dimension = recode(Dimension, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
+             sample_value = exp(sample_value),
+             Condition = paste(Stereo, Motion, Perspective, Shading, Dimension, Dataset, sep = seper))
+  
+  b_CIs <-  post_samples %>%
+            select(Condition, sample_value) %>%
+            group_by(Condition) %>%
+            median_qi()  %>%
+            ungroup() %>%
+            mutate(lower95 = .lower, upper95 = .upper, median = sample_value, 
+                   s_lower95 = round(lower95, 3), s_upper95 = round(upper95, 3),
+                   CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']')) 
+  if(which == "error"){
+    b_CIs <- b_CIs %>%
+            mutate(Condition = fct_reorder(Condition, .x = median, .desc = TRUE))
+    global_order <<- levels(b_CIs$Condition)
+  }else{
+    b_CIs <- b_CIs %>%
+            mutate(Condition = factor(Condition, levels = global_order))
+  }
+  
+  g <- post_samples %>%
+      ggplot(aes(x = sample_value, y = Condition)) +
+      theme(axis.text.y = element_text(size = 3)) + 
+      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.2, 
+                                                y = Condition, 
+                                                label = CIs), 
+                 label.color = NA,
+                 size = 3, 
+                 fill = NA, 
+                 label.padding = grid::unit(rep(0, 4), "pt")) + 
+      geom_density_ridges(
+                  fill = fill_color, 
+                  rel_min_height = 0.01,
+                  alpha = 0.5,
+                  scale = 1.5,
+                  size = 0.5
+                  ) +
+      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, .5))) +
+      coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
+      ggtitle(title) + xlab("") + ylab("") 
+  g
+  return(g)
+}
+
+g1_rq4 <- draw_all(m_brms_error_hurdle_gamma, 
+                 "Error magnitude (%)", 
+                 ERROR_COLOR, 
+                 PALETTE_ERROR,
+                 adjust_in = 1, 
+                 breaks_x = seq(3, 15, by = 4),
+                 which = "error")
+
+g2_rq4 <- draw_all(m_brms_time_gamma_motion, 
+                 "Response time (s)",
+                 TIME_COLOR, 
+                 PALETTE_TIME,
+                 adjust_in = 1, 
+                 breaks_x = seq(0, 36, by = 12),
+                 which = "time")
+
+g_combined_rq4 <- ggarrange(g1_rq4, g2_rq4, ncol = 2)
+
+ggsave(g_combined_rq4, filename = "pic/RQ4-all.pdf", width = 15, height = 12, units = "in")
+
+g_combined_rq4
+```
 # Extra figures
 
 ```{r plot-demographics, message = FALSE}
@@ -438,6 +731,8 @@ g_demographics
 ggsave(file = "pic/demographics.pdf", g_demographics, width = 2.7, height = 2, units = "in")
 
 ```
+
+# Accuracy range examples
 
 ```{r plot-acc-bars, message = FALSE}
 
@@ -463,8 +758,6 @@ g_bar3 <- ggplot() %>%
   + geom_linerange(aes(ymax = 1, ymin = 0, x = acc3), alpha = 0.2, color = ABSERROR_COLOR)%>%
   + scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0))%>%
   + scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
-
-
 
 
 ggsave(file = "pic/acc_bar.pdf",  plot_grid(g_bar1, g_bar2, g_bar3, ncol = 1,align="v"), width = 4, height = 1.6, units = "in")
