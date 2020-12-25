@@ -25,6 +25,7 @@ library(ggridges) # ggarrange
 library(ggpubr)
 library(ggdist) 
 library(ggtext)
+library(ggforce)
 
 library(tidyverse) # data manipulation
 
@@ -218,18 +219,18 @@ trials_all <- trials_all %>%
                  # manual recode levels using orthogonal contrast coding  
                  # the distance within a variable is always 1
                  AllFactors = paste(FactorStereo, FactorMotion, FactorPerspective, FactorShading, Dim, sep = seper),
-                 Stereo = recode(FactorStereo, yes = 0.5, no = -0.5),
+                 Device = recode(FactorStereo, yes = 0.5, no = -0.5),
                  Motion = recode(FactorMotion, yes = 0.5, no = -0.5),
-                 Perspective = recode(FactorPerspective, yes = 0.5, no = -0.5),
+                 Projection = recode(FactorPerspective, yes = 0.5, no = -0.5),
                  # this will ignore shading-1, the commonly-used phong lighting model
                  Shading = recode(FactorShading, `shading-1` = 0, `shading-2` = 0.5, `flat`= -0.5, `no` = -0.5),
-                 Dataset = recode(TrialDataset, "cifar10" = 0.5, "babi-q1" = -0.5),
-                 Dimension = recode(Dim, `2` = -0.5, `3` = 0.5)
+                 DataModel = recode(TrialDataset, "cifar10" = 0.5, "babi-q1" = -0.5),
+                 Dimensionality = recode(Dim, `2` = -0.5, `3` = 0.5)
                  ) 
 
 
 trials <- trials_all %>%
-  select(ParticipantID, TrialIntAccuracy, ErrorMagnitude, ResponseTime, Stereo, Motion, Perspective, Shading, Dimension, Dataset)
+  select(ParticipantID, TrialIntAccuracy, ErrorMagnitude, ResponseTime, Device, Motion, Projection, Shading, Dimensionality, DataModel)
 
 
 vtrials <- trials_all %>%
@@ -314,18 +315,18 @@ model_diagnostics <- function(m, name = "model diagnostics"){
 ## Model specification
 
 For **error magnitude**, we have 0. Therefore, we use a hurdle_gamma distribution to account for this.
-Based on the experimental design, _Dimension_ (dimensionality) only interacts with Stereo (Device) and Dataset. 
+Based on the experimental design, _Dimensionality_ (Dimensionalityality) only interacts with Device (Device) and DataModel. 
 The other five variables could interact with each other.
-We are also concerned about the difference between _Dimension_; we therefore model it as a group-level effect.
+We are also concerned about the difference between _Dimensionality_; we therefore model it as a group-level effect.
 ```{r error-effects, fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
 
 if(REBUILD_FLAG){
 
   m_error_hurdle_gamma <- bf(ErrorMagnitude ~  
                            0 + Intercept + 
-                           Stereo*Motion*Perspective*Shading*Dataset +  
-                           Stereo*Dataset*Dimension + 
-                           (1 + Dataset*Dimension | ParticipantID) + 
+                           Device*Motion*Shading*Projection*DataModel +  
+                           Device*Dimensionality*DataModel + 
+                           (1 + Dimensionality*DataModel | ParticipantID) + 
                            (1 | TrialIntAccuracy), 
                            family = hurdle_gamma(link = "log")
                         ) 
@@ -370,11 +371,11 @@ if(REBUILD_FLAG == TRUE){
 
   m_time_gamma <- bf(
                     ResponseTime | cens(cen) ~ 0 + Intercept +
-                      Stereo*Motion*Perspective*Shading*Dataset +  
-                      Stereo*Dataset*Dimension + 
-                      (1 + Stereo*Motion | ParticipantID),
+                      Device*Motion*Shading*Projection*DataModel +  
+                      Device*Dimensionality*DataModel + 
+                      (1 + Device*Motion | ParticipantID),
                     shape ~ 0 + Intercept + 
-                      Stereo*Motion,
+                      Device*Motion,
                       family = Gamma(link="log")
                      ) 
     
@@ -386,7 +387,7 @@ if(REBUILD_FLAG == TRUE){
                 ) 
     
   m_brms_time_gamma <<- brm(m_time_gamma, 
-                              data = trials, family = Gamma(link="log"),  prior = priors_time_gamma_motion, 
+                              data = trials, family = Gamma(link="log"),  prior = priors_time_gamma, 
                               chains = N_CHAINS, iter = N_ITER, warmup = N_WARMUP, thin = N_THIN, cores = N_CORES,
                               control = list(adapt_delta = DELTA, max_treedepth = TREE_DEPTH))
   
@@ -458,17 +459,17 @@ draw_coefs <- function(m,
 
 ```{r RQ1, fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
 
-target_coefs_rq1 <- c("b_Stereo", "b_Motion", "b_Perspective", "b_Shading", "b_Dimension", "b_Dataset")
+target_coefs_rq1 <- c("b_Device", "b_Motion", "b_Projection", "b_Shading", "b_Dimensionality", "b_DataModel")
 
 
 g1_rq1 <- draw_coefs(m_brms_error_hurdle_gamma, 
                  target_coefs_rq1, 
-                 "Error magnitude (%)", 
+                 "Error magnitude", 
                  ERROR_COLOR, 
                  breaks_x = seq(0.75, 1.5, by = 0.25))
 g2_rq1 <- draw_coefs(m_brms_time_gamma, 
                  target_coefs_rq1, 
-                 "Response time (s)",
+                 "Response time",
                  TIME_COLOR, 
                  breaks_x = seq(0.85, 2.2, by = 0.45))
 
@@ -484,28 +485,28 @@ g_combined_rq1
 
 ```{r RQ2, fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
 
-target_coefs_rq2 <- c("b_Stereo:Motion", 
-                  "b_Stereo:Perspective", 
-                  "b_Stereo:Shading", 
-                  "b_Stereo:Dimension", 
-                  "b_Stereo:Dataset", 
-                  "b_Motion:Perspective", 
+target_coefs_rq2 <- c("b_Device:Motion", 
+                  "b_Device:Shading", 
+                  "b_Device:Projection",
+                  "b_Device:Dimensionality", 
+                  "b_Device:DataModel", 
                   "b_Motion:Shading", 
-                  "b_Motion:Dataset", 
-                  "b_Perspective:Shading", 
-                  "b_Perspective:Dataset", 
-                  "b_Shading:Dataset", 
-                  "b_Dataset:Dimension")
+                  "b_Motion:Projection", 
+                  "b_Motion:DataModel", 
+                  "b_Shading:Projection", 
+                  "b_Shading:DataModel", 
+                  "b_Projection:DataModel", 
+                  "b_DataModel:Dimensionality")
 
 
 g1_rq2 <- draw_coefs(m_brms_error_hurdle_gamma, 
                  target_coefs_rq2, 
-                 "Error magnitude (%)", 
+                 "Error magnitude", 
                  ERROR_COLOR, 
                  breaks_x = seq(0.5, 2.1, by = 0.5))
 g2_rq2 <- draw_coefs(m_brms_time_gamma, 
                  target_coefs_rq2, 
-                 "Response time (s)",
+                 "Response time",
                  TIME_COLOR, 
                  breaks_x = seq(0.5, 2.1, by = 0.5))
 
@@ -520,6 +521,8 @@ g_combined_rq2
 
 ```{r RQ3, fig.height=10, fig.width=12, warning=FALSE, message=FALSE}
 
+target_order <- c("Device", "Motion", "Projection", "Shading", "Dimensionality", "DataModel")
+
 draw_post <- function( m, 
                        title = "", 
                        fill_color = "white" , 
@@ -529,14 +532,14 @@ draw_post <- function( m,
                        ){
   
   post_samples <- trials %>%
-    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset) %>%
+    select(Device, Motion, Projection, Shading, Dimensionality, DataModel) %>%
     distinct() %>%
     add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
     select(-c(".chain", ".iteration"))%>%
     ungroup()%>%
-    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset, sample_value) %>%
-    gather(key = "levels_names", value = "levels_values", Stereo, Motion, Perspective, Shading, Dimension, Dataset)  %>%
-    mutate(levels_values = factor(levels_values), sample_value = exp(sample_value))
+    select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
+    gather(key = "levels_names", value = "levels_values", Device, Motion, Projection, Shading, Dimensionality, DataModel)  %>%
+    mutate(levels_names = factor(levels_names, levels = rev(target_order)), levels_values = factor(levels_values), sample_value = exp(sample_value))
   
   b_CIs <-  post_samples %>%
             group_by(levels_names, levels_values) %>%
@@ -550,7 +553,7 @@ draw_post <- function( m,
   g <- post_samples %>%
       ggplot(aes(x = sample_value, y = levels_names)) +
       geom_density_ridges(
-                aes(fill = levels_values, color = levels_values), 
+                aes(fill = NA, color = levels_values), 
                 rel_min_height = 0.0005,
                 alpha = 0.5,
                 scale = .9,
@@ -595,7 +598,7 @@ g_combined_rq3
 ```
 
 
-```{r RQ4, fig.height=15, fig.width=20, warning=FALSE, message=FALSE}
+```{r RQ4, fig.height=12, fig.width=12, warning=FALSE, message=FALSE}
 
 
  global_order <- NULL
@@ -610,20 +613,20 @@ g_combined_rq3
                         ){
   
   post_samples <- trials %>%
-    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset) %>%
+    select(Device, Motion, Projection, Shading, Dimensionality, DataModel) %>%
     distinct() %>%
     add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
     select(-c(".chain", ".iteration"))%>%
     ungroup()%>%
-    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset, sample_value) %>%
-    mutate(  Stereo = recode(Stereo,  `0.5` = "HMD", `-0.5` = "Desktop"),
+    select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
+    mutate(  Device = recode(Device,  `0.5` = "HMD", `-0.5` = "Desktop"),
              Motion = recode(Motion,  `0.5` = "Motion", `-0.5` = "No Motion"),
-             Perspective = recode(Perspective, `0.5` = "Perspective", `-0.5` = "Orthographic"),
-             Shading = recode(Shading, `0` = "Simple Shading", `0.5` = "Ambient Occlusion", `-0.5` = "Flat Shading"),
-             Dataset = recode(Dataset, `0.5` = "CIFAR-10", `-0.5` =  "bAbI"),
-             Dimension = recode(Dimension, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
+             Projection = recode(Projection, `0.5` = "Persp.", `-0.5` = "Orth."),
+             Shading = recode(Shading, `0` = "Simple", `0.5` = "A.O.", `-0.5` = "Flat"),
+             DataModel = recode(DataModel, `0.5` = "CIFAR", `-0.5` =  "bAbI"),
+             Dimensionality = recode(Dimensionality, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
              sample_value = exp(sample_value),
-             Condition = paste(Stereo, Motion, Perspective, Shading, Dimension, Dataset, sep = seper))
+             Condition = paste(Device, Motion, Projection, Shading, Dimensionality, DataModel, sep = seper))
   
   b_CIs <-  post_samples %>%
             select(Condition, sample_value) %>%
@@ -642,15 +645,23 @@ g_combined_rq3
             mutate(Condition = factor(Condition, levels = global_order))
   }
   
+  
+  median_max <- max(b_CIs$median)
+  median_min <- min(b_CIs$median)
+  
   g <- post_samples %>%
       ggplot(aes(x = sample_value, y = Condition)) +
       #theme(axis.text.y = element_text(size = 9)) + 
-      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.2, 
+      geom_vline(xintercept = median_max, linetype = "dashed", color = "black", size = LINE_SIZE) +
+      geom_vline(xintercept = median_min, linetype = "dashed", color = "black", size = LINE_SIZE) +
+      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 2.2, 
                                                 y = Condition, 
                                                 label = CIs), 
                  label.color = NA,
+                 color = TEXT_COLOR,
                  size = 3, 
                  fill = NA, 
+                 hjust = 1,
                  label.padding = grid::unit(rep(0, 4), "pt")) + 
       geom_density_ridges(
                   fill = fill_color,
@@ -660,7 +671,7 @@ g_combined_rq3
                   scale = .9,
                   size = 0.5
                   ) +
-      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, .5))) +
+      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, 1.2))) +
       coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
       ggtitle(title) + xlab("") + ylab("") 
   g
@@ -685,13 +696,15 @@ g2_rq4 <- draw_all(m_brms_time_gamma,
 
 g_combined_rq4 <- ggarrange(g1_rq4, g2_rq4, ncol = 2)
 
-ggsave(g_combined_rq4, filename = "pic/RQ4-all.pdf", width = 16, height = 12.5, units = "in")
+ggsave(g_combined_rq4, filename = "pic/RQ4-all.pdf", width = 14, height = 11, units = "in")
+ggsave(g1_rq4, filename = "pic/RQ4-error.pdf", width = 8, height = 12.5, units = "in")
+ggsave(g2_rq4, filename = "pic/RQ4-time.pdf", width = 8, height = 12.5, units = "in")
 
 g_combined_rq4
 ```
 
 
-```{r RQ4-tiles, fig.height=15, fig.width=20, warning=FALSE, message=FALSE}
+```{r RQ4-tiles, fig.height=12, fig.width=12, warning=FALSE, message=FALSE}
 
  draw_tiles <- function( m, 
                         title = "", 
@@ -703,20 +716,20 @@ g_combined_rq4
                         ){
   
   post_samples <- trials %>%
-    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset) %>%
+    select(Device, Motion, Projection, Shading, Dimensionality, DataModel) %>%
     distinct() %>%
     add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
     select(-c(".chain", ".iteration"))%>%
     ungroup()%>%
-    select(Stereo, Motion, Perspective, Shading, Dimension, Dataset, sample_value) %>%
-    mutate(  Stereo = recode(Stereo,  `0.5` = "HMD", `-0.5` = "Desktop"),
-             Motion = recode(Motion,  `0.5` = "Motion", `-0.5` = "No Motion"),
-             Perspective = recode(Perspective, `0.5` = "Perspective", `-0.5` = "Orthographic"),
-             Shading = recode(Shading, `0` = "Simple Shading", `0.5` = "Ambient Occlusion", `-0.5` = "Flat Shading"),
-             Dataset = recode(Dataset, `0.5` = "CIFAR-10", `-0.5` =  "bAbI"),
-             Dimension = recode(Dimension, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
+    select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
+    mutate(  Device = recode(Device,  `0.5` = "2_HMD", `-0.5` = "1_Desktop"),
+             Motion = recode(Motion,  `0.5` = "2_Motion", `-0.5` = "1_No Motion"),
+             Projection = recode(Projection, `-0.5` = "1_Orthographic", `0.5` = "2_Perspective"),
+             Shading = recode(Shading, `-0.5` = "1_Flat Shading", `0` = "2_Simple", `0.5` = "3_Ambient Occlusion"),
+             DataModel = recode(DataModel, `0.5` = "2_CIFAR", `-0.5` =  "1_bAbI"),
+             Dimensionality = recode(Dimensionality, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
              sample_value = exp(sample_value),
-             Condition = paste(Stereo, Motion, Perspective, Shading, Dataset, Dimension, sep = seper))
+             Condition = paste(Dimensionality, Device, Motion, DataModel, Projection, Shading,  sep = seper))
   
   b_CIs <-  post_samples %>%
             select(Condition, sample_value) %>%
@@ -725,14 +738,23 @@ g_combined_rq4
             ungroup() %>%
             mutate(lower95 = .lower, upper95 = .upper, median = sample_value, 
                    s_lower95 = round(lower95, 3), s_upper95 = round(upper95, 3),
-                   CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']')) 
-
+                   CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']'),
+                   index = row_number()
+                   ) 
+  scale_factor <- 3
   g <- b_CIs %>%
       ggplot() +
-      theme(legend.position = "right") +
-      geom_tile(aes(fill = median, x = 1, y = Condition), width = 1) +
-      scale_fill_continuous(low = "#ffffff", high = fill_color) +
-      facet_grid() +
+      theme(legend.position = "right", panel.grid.major = element_blank()) +
+      coord_fixed(ratio = 1) +
+      geom_tile(aes(x = 47, y = scale_factor * index), width = scale_factor, height = scale_factor, size = 0.1, fill = NA, color = "black") + 
+      geom_circle(aes(color = median, x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(upper95)), fill = NA, size = 0.1) +
+      geom_circle(aes(fill = median, x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(median)), color = NA,  size = 0.1) +
+      geom_circle(aes(color = lower95, x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(lower95)), fill = NA, size = 0.1) +
+      geom_text(aes(x = 20, y = scale_factor * index, label = Condition), size = 2) +
+      scale_x_continuous(limits = c(0, 50)) +
+      scale_fill_gradient(low = "#ffffff", high = fill_color, limits = c(breaks_x[1], tail(breaks_x, n = 1)), guide = "colourbar") +
+      scale_color_gradient(low = "#ffffff", high = fill_color, limits = c(breaks_x[1], tail(breaks_x, n = 1)), guide = "colourbar") + 
+      scale_y_reverse() + 
       ggtitle(title) + xlab("") + ylab("") 
   g
   return(g)
@@ -742,7 +764,7 @@ g1_rq4_tiles <- draw_tiles(m_brms_error_hurdle_gamma,
                  "Error magnitude (%)", 
                  ERROR_COLOR, 
                  PALETTE_ERROR,
-                 adjust_in = 1, 
+                 adjust_in = 0.35, 
                  breaks_x = seq(3, 15, by = 4),
                  which = "error")
 
@@ -750,15 +772,16 @@ g2_rq4_tiles <- draw_tiles(m_brms_time_gamma,
                  "Response time (s)",
                  TIME_COLOR, 
                  PALETTE_TIME,
-                 adjust_in = 1, 
+                 adjust_in = 0.24, 
                  breaks_x = seq(0, 36, by = 12),
                  which = "time")
 
 g_combined_rq4_tiles <- ggarrange(g1_rq4_tiles, g2_rq4_tiles, ncol = 2)
 
-ggsave(g_combined_rq4_tiles, filename = "pic/RQ4_tiles.pdf", width = 10.35, height = 12, units = "in")
+ggsave(g_combined_rq4_tiles, filename = "pic/RQ4_tiles.pdf", width = 10.5, height = 19.5, units = "in")
 
 g_combined_rq4_tiles
+
 ```
 # Extra figures
 
@@ -772,13 +795,24 @@ demographics_table <- aggregate(data = demographics_stack, values ~ overall, len
 demographics_table$item <- sapply(demographics_table$overall, function(x){return(strsplit(x, split = " ")[[1]][2])})  
 demographics_table$option <- sapply(demographics_table$overall, function(x){return(strsplit(x, split = " ")[[1]][1])})  
 
+df <- data.frame(
+  item = c("normal", "glasses", "contacts", "others", "a little bit", "not at all"),
+  values = c(10, 5, 5, 2, 9, 23)
+)
+
 g_demographics <- ggplot() +
-  geom_tile(data = demographics_table, aes(x = option, y = item, fill = values)) +
-  scale_fill_continuous(low = "#ffffff", high = ERROR_COLOR, limits = c(0, 24), breaks = c(0, 8, 16, 24)) + 
+  theme(legend.position = "top", panel.grid.major = element_blank()) +
+  #geom_tile(data = demographics_table, aes(x = option, y = item, fill = values)) +
+  geom_point(data = demographics_table, aes(color = values, x = as.numeric(option), y = item, size = sqrt(values)), stroke = 1) +
+  geom_point(data = df, aes(color = values, x = 8, y = item, size = sqrt(values)), stroke = 1) +
+  scale_fill_gradient(low = "#ffffff", high = "#134a91", limits = c(0, 25), guide = "colourbar") +
+  scale_color_gradient(low = "#ffffff", high = "#134a91", limits = c(0, 25), guide = "colourbar") + 
+  scale_x_continuous(limit = c(0, 9), breaks = seq(1, 7, by = 1)) + 
   xlab("scale") + ylab("")
+
 g_demographics
 
-ggsave(file = "pic/demographics.pdf", g_demographics, width = 2.7, height = 2, units = "in")
+ggsave(g_demographics, filename = "pic/g_demographics.pdf", width = 3.5, height = 3.4, units = "in")
 
 ```
 

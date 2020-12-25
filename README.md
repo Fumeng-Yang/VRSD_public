@@ -37,7 +37,7 @@ Supplementary Materials
       -  **Step**,**BinIndex**,**BinLower**,**BinUpper**,**File**: the refering to which file to use
 
 ## analysis
-   - the analysis scripts for the Bayesian inference (they may take 10 - 30 minutes to run)
+   - the analysis script/RMarkdown file
 
 ## python
 #### generating participants
