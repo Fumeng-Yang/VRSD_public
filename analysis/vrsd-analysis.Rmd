@@ -35,7 +35,7 @@ library(parallel) #detectCores
 library(tidybayes) 
 
 
-REBUILD_FLAG <<- TRUE
+REBUILD_FLAG <<- F
 ```
 
 ```{r style-setting, include = FALSE, message = FALSE}
@@ -76,7 +76,7 @@ BANDWIDTH_VERY_LARGE <- 0.5
 ERROR_COLOR <- "#4a65ba"
 TIME_COLOR <- "#8bba45"
 PALETTE_ERROR <- c("#cbd5f2", "#899cd6", ERROR_COLOR)
-PALETTE_TIME <- c("#e6f7cb", "#b5d683", TIME_COLOR)
+PALETTE_TIME <- c("#d2e8b3", "#bfde95", TIME_COLOR)
 
 # average comfortable level: explanation x vis
 t <- theme(
@@ -380,10 +380,11 @@ if(REBUILD_FLAG == TRUE){
                      ) 
     
   priors_time_gamma <- c(
-                set_prior("normal(0, 2.5)", class = "b"),
-                set_prior("normal(0, 30)", class = "b", coef = "Intercept"), 
+                prior(normal(0, 2.5), class = "b"),
+        
+                prior(normal(0, 30), class = "b", coef = "Intercept"), 
                 #prior(gamma(1, 20), class = "shape"),
-                set_prior("student_t(3, 0, 10)", class = "sd")
+                prior(student_t(3, 0, 10)", class = "sd")
                 ) 
     
   m_brms_time_gamma <<- brm(m_time_gamma, 
@@ -556,7 +557,7 @@ draw_post <- function( m,
                 aes(fill = NA, color = levels_values), 
                 rel_min_height = 0.0005,
                 alpha = 0.5,
-                scale = .9,
+                scale = .8,
                 size = 0.4
                 ) +
       geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.2, 
@@ -592,7 +593,7 @@ g2_rq3 <- draw_post(m_brms_time_gamma,
 
 g_combined_rq3 <- ggarrange(g1_rq3, g2_rq3, ncol = 2)
 
-ggsave(g_combined_rq3, filename = "pic/RQ3-div.pdf", width = 7, height = 3, units = "in")
+ggsave(g_combined_rq3, filename = "pic/RQ3-div.pdf", width = 6, height = 3.4, units = "in")
 
 g_combined_rq3
 ```
@@ -654,7 +655,7 @@ g_combined_rq3
       #theme(axis.text.y = element_text(size = 9)) + 
       geom_vline(xintercept = median_max, linetype = "dashed", color = "black", size = LINE_SIZE) +
       geom_vline(xintercept = median_min, linetype = "dashed", color = "black", size = LINE_SIZE) +
-      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 2.2, 
+      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.8, 
                                                 y = Condition, 
                                                 label = CIs), 
                  label.color = NA,
@@ -666,12 +667,12 @@ g_combined_rq3
       geom_density_ridges(
                   fill = fill_color,
                   color = fill_color,
-                  rel_min_height = 0.0005,
+                  rel_min_height = 0.00005,
                   alpha = 0.5,
                   scale = .9,
                   size = 0.5
                   ) +
-      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, 1.2))) +
+      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, .8))) +
       coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
       ggtitle(title) + xlab("") + ylab("") 
   g
@@ -696,7 +697,7 @@ g2_rq4 <- draw_all(m_brms_time_gamma,
 
 g_combined_rq4 <- ggarrange(g1_rq4, g2_rq4, ncol = 2)
 
-ggsave(g_combined_rq4, filename = "pic/RQ4-all.pdf", width = 14, height = 11, units = "in")
+ggsave(g_combined_rq4, filename = "pic/RQ4-all.pdf", width = 14, height = 15, units = "in")
 ggsave(g1_rq4, filename = "pic/RQ4-error.pdf", width = 8, height = 12.5, units = "in")
 ggsave(g2_rq4, filename = "pic/RQ4-time.pdf", width = 8, height = 12.5, units = "in")
 
