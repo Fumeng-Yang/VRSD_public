@@ -381,10 +381,9 @@ if(REBUILD_FLAG == TRUE){
     
   priors_time_gamma <- c(
                 prior(normal(0, 2.5), class = "b"),
-        
                 prior(normal(0, 30), class = "b", coef = "Intercept"), 
                 #prior(gamma(1, 20), class = "shape"),
-                prior(student_t(3, 0, 10)", class = "sd")
+                prior(student_t(3, 0, 10), class = "sd")
                 ) 
     
   m_brms_time_gamma <<- brm(m_time_gamma, 
@@ -523,25 +522,25 @@ g_combined_rq2
 ```{r RQ3, fig.height=10, fig.width=12, warning=FALSE, message=FALSE}
 
 target_order <- c("Device", "Motion", "Projection", "Shading", "Dimensionality", "DataModel")
-
-draw_post <- function( m, 
-                       title = "", 
-                       fill_color = "white" , 
-                       palette_in, 
-                       adjust_in,
-                       breaks_x = seq(0, 1, by = 0.5)
-                       ){
-  
+m <- m_brms_error_hurdle_gamma
+ draw_post <- function( m, 
+                        title = "", 
+                        fill_color = "white" , 
+                        palette_in, 
+                        adjust_in,
+                        breaks_x = seq(0, 1, by = 0.5)
+                        ){
+   
   post_samples <- trials %>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel) %>%
     distinct() %>%
-    add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
-    select(-c(".chain", ".iteration"))%>%
-    ungroup()%>%
-    select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
-    gather(key = "levels_names", value = "levels_values", Device, Motion, Projection, Shading, Dimensionality, DataModel)  %>%
-    mutate(levels_names = factor(levels_names, levels = rev(target_order)), levels_values = factor(levels_values), sample_value = exp(sample_value))
-  
+    add_fitted_draws(m, value = "sample_value", scale = "response", re_formula = NA, allow_new_levels = FALSE) %>%
+     select(-c(".chain", ".iteration"))%>%
+     ungroup()%>%
+     select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
+     gather(key = "levels_names", value = "levels_values", Device, Motion, Projection, Shading, Dimensionality, DataModel)  %>%
+     mutate(levels_names = factor(levels_names, levels = rev(target_order)), levels_values = factor(levels_values))
+
   b_CIs <-  post_samples %>%
             group_by(levels_names, levels_values) %>%
             median_qi()  %>%
@@ -574,8 +573,8 @@ draw_post <- function( m,
       coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
       ggtitle(title) + xlab("") + ylab("") 
   
-  return(g)
-}
+   return(g)
+ }
 
 g1_rq3 <- draw_post(m_brms_error_hurdle_gamma, 
                  "Error magnitude (%)", 
@@ -616,7 +615,7 @@ g_combined_rq3
   post_samples <- trials %>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel) %>%
     distinct() %>%
-    add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
+    add_fitted_draws(m, value = "sample_value", scale = "response", re_formula = NA, allow_new_levels = FALSE) %>%
     select(-c(".chain", ".iteration"))%>%
     ungroup()%>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
@@ -626,7 +625,6 @@ g_combined_rq3
              Shading = recode(Shading, `0` = "Simple", `0.5` = "A.O.", `-0.5` = "Flat"),
              DataModel = recode(DataModel, `0.5` = "CIFAR", `-0.5` =  "bAbI"),
              Dimensionality = recode(Dimensionality, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
-             sample_value = exp(sample_value),
              Condition = paste(Device, Motion, Projection, Shading, Dimensionality, DataModel, sep = seper))
   
   b_CIs <-  post_samples %>%
@@ -719,17 +717,16 @@ g_combined_rq4
   post_samples <- trials %>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel) %>%
     distinct() %>%
-    add_fitted_draws(m, value = "sample_value", scale = "linear", re_formula = NA, allow_new_levels = FALSE) %>%
+    add_fitted_draws(m, value = "sample_value", scale = "response", re_formula = NA, allow_new_levels = FALSE) %>%
     select(-c(".chain", ".iteration"))%>%
     ungroup()%>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
-    mutate(  Device = recode(Device,  `0.5` = "2_HMD", `-0.5` = "1_Desktop"),
-             Motion = recode(Motion,  `0.5` = "2_Motion", `-0.5` = "1_No Motion"),
-             Projection = recode(Projection, `-0.5` = "1_Orthographic", `0.5` = "2_Perspective"),
-             Shading = recode(Shading, `-0.5` = "1_Flat Shading", `0` = "2_Simple", `0.5` = "3_Ambient Occlusion"),
-             DataModel = recode(DataModel, `0.5` = "2_CIFAR", `-0.5` =  "1_bAbI"),
+    mutate(  Device = recode(Device,  `0.5` = "2 HMD", `-0.5` = "1 Desktop"),
+             Motion = recode(Motion,  `0.5` = "2 Motion", `-0.5` = "1 No Motion"),
+             Projection = recode(Projection, `-0.5` = "1 Orthographic", `0.5` = "2 Perspective"),
+             Shading = recode(Shading, `-0.5` = "1 Flat Shading", `0` = "2 Simple", `0.5` = "3 Ambient Occlusion"),
+             DataModel = recode(DataModel, `0.5` = "2 CIFAR", `-0.5` =  "1 bAbI"),
              Dimensionality = recode(Dimensionality, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
-             sample_value = exp(sample_value),
              Condition = paste(Dimensionality, Device, Motion, DataModel, Projection, Shading,  sep = seper))
   
   b_CIs <-  post_samples %>%
@@ -742,7 +739,7 @@ g_combined_rq4
                    CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']'),
                    index = row_number()
                    ) 
-  scale_factor <- 3
+  scale_factor <- 2.8
   g <- b_CIs %>%
       ggplot() +
       theme(legend.position = "right", panel.grid.major = element_blank()) +
@@ -750,7 +747,7 @@ g_combined_rq4
       geom_tile(aes(x = 47, y = scale_factor * index), width = scale_factor, height = scale_factor, size = 0.1, fill = NA, color = "black") + 
       geom_circle(aes(color = median, x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(upper95)), fill = NA, size = 0.1) +
       geom_circle(aes(fill = median, x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(median)), color = NA,  size = 0.1) +
-      geom_circle(aes(color = lower95, x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(lower95)), fill = NA, size = 0.1) +
+      geom_circle(aes(x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(lower95)), color = "white", fill = NA, size = 0.1) +
       geom_text(aes(x = 20, y = scale_factor * index, label = Condition), size = 2) +
       scale_x_continuous(limits = c(0, 50)) +
       scale_fill_gradient(low = "#ffffff", high = fill_color, limits = c(breaks_x[1], tail(breaks_x, n = 1)), guide = "colourbar") +
@@ -779,7 +776,7 @@ g2_rq4_tiles <- draw_tiles(m_brms_time_gamma,
 
 g_combined_rq4_tiles <- ggarrange(g1_rq4_tiles, g2_rq4_tiles, ncol = 2)
 
-ggsave(g_combined_rq4_tiles, filename = "pic/RQ4_tiles.pdf", width = 10.5, height = 19.5, units = "in")
+ggsave(g_combined_rq4_tiles, filename = "pic/RQ4-bubbles.pdf", width = 10.5, height = 19.5, units = "in")
 
 g_combined_rq4_tiles
 
