@@ -28,6 +28,7 @@ library(ggtext)
 library(ggforce)
 
 library(tidyverse) # data manipulation
+library(modelr) # data manipulation
 
 library(rstan) #detectCores
 library(brms) # core pack
@@ -252,7 +253,7 @@ g_raw_error <- vtrials %>%
          facet_wrap(AllFactors ~ .,ncol = 3, scales = "free") +
          coord_cartesian(xlim = c(0, 50), ylim = c(0, 30)) + 
          geom_histogram(binwidth = 2, fill = "lightblue", color = "white") +
-         ggtitle("raw data - error magnitude (%)") + 
+         ggtitle("raw data - error magnitude (pt)") + 
          xlab ("error magnitude ") + ylab("count")
    
 g_raw_error
@@ -532,9 +533,17 @@ m <- m_brms_error_hurdle_gamma
                         ){
    
   post_samples <- trials %>%
+        # these use theoritical centers, not practical centers...
+        # data_grid(Device = c(-0.5, 0.5), Motion = 0, Projection = 0, Shading = 0, Dimensionality = 0, DataModel = 0) %>%
+        # add_row(trials %>%data_grid(Device = 0, Motion = c(-0.5, 0.5), Projection = 0, Shading = 0, Dimensionality = 0, DataModel = 0))  %>%
+        # add_row(trials %>%data_grid(Device = 0, Motion = 0, Projection = c(-0.5, 0.5), Shading = 0, Dimensionality = 0, DataModel = 0))  %>%
+        # add_row(trials %>%data_grid(Device = 0, Motion = 0, Projection = 0, Shading = c(-0.5, 0, 0.5), Dimensionality = 0, DataModel = 0))  %>%
+        # add_row(trials %>%data_grid(Device = 0, Motion = 0, Projection = 0, Shading = 0, Dimensionality = c(-0.5, 0.5), DataModel = 0))  %>%
+        # add_row(trials %>%data_grid(Device = 0, Motion = 0, Projection = 0, Shading = 0, Dimensionality = 0, DataModel = c(-0.5, 0.5)))  %>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel) %>%
     distinct() %>%
-    add_fitted_draws(m, value = "sample_value", scale = "response", re_formula = NA, allow_new_levels = FALSE) %>%
+        #View(post_samples)
+    add_fitted_draws(m, value = "sample_value", scale = "response", re_formula = NA, allow_new_levels = F) %>%
      select(-c(".chain", ".iteration"))%>%
      ungroup()%>%
      select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
@@ -546,49 +555,49 @@ m <- m_brms_error_hurdle_gamma
             median_qi()  %>%
             ungroup() %>%
             mutate(lower95 = .lower, upper95 = .upper, median = sample_value)%>%
-            mutate(levels_values = factor(levels_values), 
+            mutate(levels_values = factor(levels_values),
                  s_lower95 = round(lower95, 3), s_upper95 = round(upper95, 3),
                  CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']'))
-  
+
   g <- post_samples %>%
       ggplot(aes(x = sample_value, y = levels_names)) +
       geom_density_ridges(
-                aes(fill = NA, color = levels_values), 
+                aes(fill = NA, color = levels_values),
                 rel_min_height = 0.0005,
                 alpha = 0.5,
                 scale = .8,
                 size = 0.4
                 ) +
-      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.2, 
-                                                y = levels_names, 
-                                                color = levels_values, 
-                                                label = CIs), 
+      geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.2,
+                                                y = levels_names,
+                                                color = levels_values,
+                                                label = CIs),
                  label.color = NA,
-                 size = 2, 
-                 fill = NA, 
-                 label.padding = grid::unit(rep(0, 4), "pt")) + 
-      scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, .5))) +
-      scale_fill_manual(values = palette_in) + 
-      scale_color_manual(values = palette_in) + 
-      coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
-      ggtitle(title) + xlab("") + ylab("") 
-  
+                 size = 2,
+                 fill = NA,
+                 label.padding = grid::unit(rep(0, 4), "pt")) +
+      #scale_x_continuous(breaks = breaks_x, expand = expansion(mult = c(0.01, .5))) +
+      scale_fill_manual(values = palette_in) +
+      scale_color_manual(values = palette_in) +
+      #coord_cartesian(xlim = c(breaks_x[1], tail(breaks_x, n = 1))) +
+      ggtitle(title) + xlab("") + ylab("")
+
    return(g)
  }
 
 g1_rq3 <- draw_post(m_brms_error_hurdle_gamma, 
-                 "Error magnitude (%)", 
+                 "Error magnitude (pt)", 
                  ERROR_COLOR, 
                  PALETTE_ERROR,
                  adjust_in = 1, 
-                 breaks_x = seq(0, 18, by = 6))
+                 breaks_x = seq(0, 10, by = 6))
 
 g2_rq3 <- draw_post(m_brms_time_gamma, 
                  "Response time (s)",
                  TIME_COLOR, 
                  PALETTE_TIME,
                  adjust_in = 1, 
-                 breaks_x = seq(0, 36, by = 12))
+                 breaks_x = seq(0, 18, by = 12))
 
 g_combined_rq3 <- ggarrange(g1_rq3, g2_rq3, ncol = 2)
 
@@ -678,7 +687,7 @@ g_combined_rq3
 }
 
 g1_rq4 <- draw_all(m_brms_error_hurdle_gamma, 
-                 "Error magnitude (%)", 
+                 "Error magnitude (pt)", 
                  ERROR_COLOR, 
                  PALETTE_ERROR,
                  adjust_in = 1, 
@@ -708,6 +717,7 @@ g_combined_rq4
  draw_tiles <- function( m, 
                         title = "", 
                         fill_color = "white" , 
+                        stop_color = "white",
                         palette_in, 
                         adjust_in,
                         breaks_x = seq(0, 1, by = 0.5),
@@ -750,8 +760,8 @@ g_combined_rq4
       geom_circle(aes(x0 = 47, y0 = scale_factor * index, r = adjust_in * sqrt(lower95)), color = "white", fill = NA, size = 0.1) +
       geom_text(aes(x = 20, y = scale_factor * index, label = Condition), size = 2) +
       scale_x_continuous(limits = c(0, 50)) +
-      scale_fill_gradient(low = "#ffffff", high = fill_color, limits = c(breaks_x[1], tail(breaks_x, n = 1)), guide = "colourbar") +
-      scale_color_gradient(low = "#ffffff", high = fill_color, limits = c(breaks_x[1], tail(breaks_x, n = 1)), guide = "colourbar") + 
+      scale_fill_gradient(low = stop_color, high = fill_color, limits = c(breaks_x[1], tail(breaks_x, n = 1)), guide = "colourbar") +
+      scale_color_gradient(low = stop_color, high = fill_color, limits = c(breaks_x[1], tail(breaks_x, n = 1)), guide = "colourbar") + 
       scale_y_reverse() + 
       ggtitle(title) + xlab("") + ylab("") 
   g
@@ -759,8 +769,9 @@ g_combined_rq4
 }
 
 g1_rq4_tiles <- draw_tiles(m_brms_error_hurdle_gamma, 
-                 "Error magnitude (%)", 
+                 "Error magnitude (pt)", 
                  ERROR_COLOR, 
+                  "white",
                  PALETTE_ERROR,
                  adjust_in = 0.35, 
                  breaks_x = seq(3, 15, by = 4),
@@ -768,7 +779,8 @@ g1_rq4_tiles <- draw_tiles(m_brms_error_hurdle_gamma,
 
 g2_rq4_tiles <- draw_tiles(m_brms_time_gamma, 
                  "Response time (s)",
-                 TIME_COLOR, 
+                "#699923", #8bba45 
+                "#f0fcd7", 
                  PALETTE_TIME,
                  adjust_in = 0.24, 
                  breaks_x = seq(0, 36, by = 12),
@@ -798,13 +810,15 @@ df <- data.frame(
   values = c(10, 5, 5, 2, 9, 23)
 )
 
+demo_color <- "#6959a6"
+
 g_demographics <- ggplot() +
   theme(legend.position = "top", panel.grid.major = element_blank()) +
   #geom_tile(data = demographics_table, aes(x = option, y = item, fill = values)) +
   geom_point(data = demographics_table, aes(color = values, x = as.numeric(option), y = item, size = sqrt(values)), stroke = 1) +
   geom_point(data = df, aes(color = values, x = 8, y = item, size = sqrt(values)), stroke = 1) +
-  scale_fill_gradient(low = "#ffffff", high = "#134a91", limits = c(0, 25), guide = "colourbar") +
-  scale_color_gradient(low = "#ffffff", high = "#134a91", limits = c(0, 25), guide = "colourbar") + 
+  scale_fill_gradient(low = "#ffffff", high = demo_color, limits = c(0, 25), guide = "colourbar") +
+  scale_color_gradient(low = "#ffffff", high = demo_color, limits = c(0, 25), guide = "colourbar") + 
   scale_x_continuous(limit = c(0, 9), breaks = seq(1, 7, by = 1)) + 
   xlab("scale") + ylab("")
 
@@ -825,22 +839,23 @@ acc2 <- c(0.192, 0.246, 0.394, 0.405, 0.427, 0.439, 0.476, 0.485, 0.488, 0.488, 
 
 acc3 <- c(0.838, 0.839, 0.8405, 0.8505, 0.8575, 0.8575, 0.865, 0.872, 0.872, 0.873, 0.8735, 0.8745, 0.882, 0.882, 0.8835, 0.885, 0.8865, 0.887, 0.887, 0.892, 0.892, 0.8935, 0.895, 0.8955, 0.896, 0.897, 0.8975, 0.898, 0.898, 0.8985, 0.8985, 0.899, 0.8995, 0.8995, 0.8995, 0.9, 0.9015, 0.902, 0.9025, 0.9035, 0.904, 0.9045, 0.9045, 0.905, 0.9055, 0.9055, 0.906, 0.906, 0.9075, 0.908, 0.9085, 0.9085, 0.9085, 0.9085, 0.9095, 0.9095, 0.9105, 0.9105, 0.9105, 0.911, 0.9115, 0.9115, 0.9115, 0.9115, 0.9125, 0.9125, 0.9125, 0.9125, 0.9125, 0.9125, 0.913, 0.9135, 0.9135, 0.9135, 0.914, 0.914, 0.914, 0.9145, 0.915, 0.915, 0.915, 0.9155, 0.9155, 0.9155, 0.9155, 0.916, 0.916, 0.916, 0.9165, 0.9165, 0.917, 0.917, 0.917, 0.917, 0.9175, 0.918, 0.918, 0.918, 0.918, 0.918, 0.918, 0.918, 0.9185, 0.9185, 0.9185, 0.9185, 0.9185, 0.919, 0.919, 0.919, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.9195, 0.92, 0.92, 0.92, 0.92, 0.9205, 0.9205, 0.9205, 0.9205, 0.921, 0.921, 0.9215, 0.9215, 0.9215, 0.9215, 0.9215, 0.922, 0.922, 0.922, 0.922, 0.922, 0.922, 0.9225, 0.9225, 0.9225, 0.9225, 0.923, 0.923, 0.923, 0.923, 0.9235, 0.9235, 0.9235, 0.9235, 0.9235, 0.9235, 0.924, 0.924, 0.924, 0.924, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.9245, 0.925, 0.925, 0.925, 0.925, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.9255, 0.926, 0.926, 0.926, 0.926, 0.926, 0.9265, 0.9265, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.927, 0.9275, 0.9275, 0.9275, 0.9275, 0.928, 0.928, 0.928, 0.928, 0.928, 0.928, 0.928, 0.928, 0.9285, 0.9285, 0.9285, 0.9285, 0.9285, 0.9285, 0.929, 0.929, 0.929, 0.929, 0.929, 0.929, 0.9295, 0.9295, 0.93, 0.93, 0.93, 0.93, 0.93, 0.9305, 0.9305, 0.9305, 0.931, 0.9315, 0.9315, 0.9315, 0.9315, 0.932, 0.9325, 0.9325, 0.933, 0.9335, 0.9335, 0.9335, 0.934, 0.9345, 0.9345, 0.936, 0.936, 0.937, 0.937, 0.94, 0.9405)
 
+bars_color <- "#6959a6"
 
 g_bar1 <- ggplot() +
            theme(panel.grid.major.x = element_blank()) +
-           geom_linerange(aes(ymax = 1, ymin = 0, x = acc1), size = 0.07, color = ERROR_COLOR) +
+           geom_linerange(aes(ymax = 1, ymin = 0, x = acc1), size = 0.07, color = bars_color) +
            scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
            scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
 
 g_bar2 <- ggplot() +
         theme(panel.grid.major.x = element_blank()) +
-        geom_linerange(aes(ymax = 1, ymin = 0, x = acc2), size = 0.07, color = ERROR_COLOR) +
+        geom_linerange(aes(ymax = 1, ymin = 0, x = acc2), size = 0.07, color = bars_color) +
         scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
         scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
 
 g_bar3 <- ggplot() +
           theme(panel.grid.major.x = element_blank()) +
-          geom_linerange(aes(ymax = 1, ymin = 0, x = acc3), size = 0.07, color = ERROR_COLOR) +
+          geom_linerange(aes(ymax = 1, ymin = 0, x = acc3), size = 0.07, color = bars_color) +
           scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
           scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
 
