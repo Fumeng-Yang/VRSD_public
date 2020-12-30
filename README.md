@@ -1,4 +1,4 @@
-# The Effects of Visual Cues on Accuracy Estimation in Immersive Scatterplots (under review)
+# The Effects of Visual Cues on Classification Understanding in Immersive Scatterplots (under review)
 
 Supplementary Materials
 
