@@ -1,5 +1,6 @@
 ---
 title: "Data Analysis for The effects of visual cues on understanding classification in immersive scatterplots"
+author: "Fumeng Yang"
 date: "`r Sys.Date()`"
 output: 
   html_document: 
@@ -16,6 +17,12 @@ output:
     # clean up workspace
     rm(list = ls(all.names = TRUE)) 
     setwd("/Volumes/Data/Github/VRSD_public/analysis")
+```
+
+```{r knit-github, eval=FALSE,echo=FALSE,include=FALSE}
+# compile for github
+library(rmarkdown)
+render("//Volumes/Data/Github/VRSD_public/analysis/vrsd-analysis.Rmd", md_document(variant = "markdown_github"))
 ```
 
 Dependencies
@@ -35,7 +42,8 @@ library(brms) # core pack
 library(parallel) #detectCores
 library(tidybayes) 
 
-
+# a flag to let us load models from the disk (F) or re-run the models (T)
+# it took about 20 ~ 60 minutes to run the models
 REBUILD_FLAG <<- F
 ```
 
@@ -255,10 +263,11 @@ g_raw_error <- vtrials %>%
          geom_histogram(binwidth = 2, fill = "lightblue", color = "white") +
          ggtitle("raw data - error magnitude (pt)") + 
          xlab ("error magnitude ") + ylab("count")
-   
-g_raw_error
 
 ggsave(g_raw_error, filename = "pic/g_raw_error.pdf", width = 10, height = 10, units = "in")
+g_raw_error
+
+
 
 g_raw_time <- vtrials %>%
          ggplot(mapping = aes(x = ResponseTime)) +
@@ -267,12 +276,14 @@ g_raw_time <- vtrials %>%
          geom_histogram(binwidth = 2, fill = "lightgray", color = "white") +
          ggtitle("raw data - response time  (s)") + 
          xlab ("response time ") + ylab("count")
-   
-g_raw_time
 
 ggsave(g_raw_time, filename = "pic/g_raw_time.pdf", width = 10, height = 10, units = "in")
+
+g_raw_time
+
+
 ```
-# Modeling
+# Models
 
 ## Helper function 
 
@@ -316,10 +327,15 @@ model_diagnostics <- function(m, name = "model diagnostics"){
 ## Model specification
 
 For **error magnitude**, we have 0. Therefore, we use a hurdle_gamma distribution to account for this.
-Based on the experimental design, _Dimensionality_ (Dimensionalityality) only interacts with Device (Device) and DataModel. 
+Based on the experimental design, _Dimensionality_ only interacts with Device and DataModel. 
 The other five variables could interact with each other.
-We are also concerned about the difference between _Dimensionality_; we therefore model it as a group-level effect.
-```{r error-effects, fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
+We are also concerned about the difference between _Dimensionality_; we therefore model it as a group-level effect. The two data models have different ranges of accuracy; we also specify it as a group-effect.
+Last, each trial has different true accuracies, and we specify it as another random intercept to separate the effects.
+Because of the skewness (we also don't have evidence of error magnitude being normally distributed), we use a gamma likelihood instead of normal/student_t. 
+Because of the zero values (no error), we use a hurdle gamma likelihood.
+Other choices like skewed normal are also reasonable, but gamma results in posterior prediction best capturing the data and of a smaller waic.
+Since we care about mean of error magnitude and the data also does not suggest a big variance in standard deviation across conditions, we did not use a submodel for standard deviation.
+```{r error-effects, fig.height=10, fig.width=10, message=FALSE, warning=FALSE}
 
 if(REBUILD_FLAG){
 
@@ -359,11 +375,13 @@ model_diagnostics(m_brms_error_hurdle_gamma)
 
 
 
-For **response time**, we have a similar motivation with a few exceptions. 
+For **response time**, we have a similar motivation with error magnitude with a few exceptions. 
 First response time is positive. Therefore a gamma distribution is good enough.
 Second, we know the upper bound of response time is about 60 is cropped. We need to tell the model about this (left censored). 
-
-```{r time-effects, fig.height=7, fig.width=7, message=FALSE, warning=FALSE}
+Also, data model and dimensionality probably does not affect response time very much; however, different devices and motion levels should be treated differently.
+So we use Device*Motion as the group-level effects to replace data properties as group-level effects. 
+We note that the distributions of response time could look very different; a sub-model for shape is more appropriate to capture the difference. We added Device and Motion as fixed effects (adding random effects would let the model not converge.)
+```{r time-effects, fig.height=10, fig.width=10, message=FALSE, warning=FALSE}
 
 if(REBUILD_FLAG == TRUE){
   
@@ -405,7 +423,8 @@ summary(m_brms_time_gamma)
 ```
 
 
-
+Now we have the models. 
+Before we head towards guiding questions, we first a helper function for plotting the results.
 ```{r draw-coefs, fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
 
 draw_coefs <- function(m, 
@@ -456,8 +475,11 @@ draw_coefs <- function(m,
 }
 ```
 
-# How do the six manipulated variables affect participants' performance?
+# Results 
 
+## GQ1: How do the six manipulated variables affect participants' performance?
+To answer the first guiding question, we look at the model coefficients of each experimental variable from fixed effects. 
+The coefficients from fixed effects tell us the overall _weight_ of each variable when conditioning on just that variable for an average; note that the sign and direction of an effect depends on coding.
 ```{r RQ1, fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
 
 target_coefs_rq1 <- c("b_Device", "b_Motion", "b_Projection", "b_Shading", "b_Dimensionality", "b_DataModel")
@@ -482,8 +504,9 @@ g_combined_rq1
   
 ```
 
-# Interaction effects
-
+## GQ2: How do the experimental variables interact with each other?
+Similar to our investigation for the first guiding question, we use the model coefficients to investigate the interactions effects between variables. 
+We only considered two-way interaction effects for simplicity; more complicated interaction effects were implied by the analyses below in GQ4.
 ```{r RQ2, fig.height=5, fig.width=10, warning=FALSE, message=FALSE}
 
 target_coefs_rq2 <- c("b_Device:Motion", 
@@ -520,6 +543,9 @@ g_combined_rq2
 ```
 
 
+## GQ3: How does each manipulation affect participants' performance?
+ To compare different levels of manipulations, we draw posterior samples from the model to get an estimate of mean for each measure.
+ These posterior distributions show how an average participant does when conditioning on that level of manipulation.
 ```{r RQ3, fig.height=10, fig.width=12, warning=FALSE, message=FALSE}
 
 target_order <- c("Device", "Motion", "Projection", "Shading", "Dimensionality", "DataModel")
@@ -607,6 +633,11 @@ g_combined_rq3
 ```
 
 
+## GQ4: Which resulting scatterplot designs are more effective for our task?
+To investigate the effectiveness of each combination, we draw posterior samples from the model to get an estimate of all possible combinations.
+These posterior distributions show that how an average participant does with one combination, which corresponds to an experimental condition.
+Given our primary interest in error magnitude, we form a rank list of performance based on median of mean distribution.
+
 ```{r RQ4, fig.height=12, fig.width=12, warning=FALSE, message=FALSE}
 
 
@@ -628,7 +659,8 @@ g_combined_rq3
     select(-c(".chain", ".iteration"))%>%
     ungroup()%>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
-    mutate(  Device = recode(Device,  `0.5` = "HMD", `-0.5` = "Desktop"),
+    mutate(  # code it back so that we know which one is which...
+             Device = recode(Device,  `0.5` = "HMD", `-0.5` = "Desktop"),
              Motion = recode(Motion,  `0.5` = "Motion", `-0.5` = "No Motion"),
              Projection = recode(Projection, `0.5` = "Persp.", `-0.5` = "Orth."),
              Shading = recode(Shading, `0` = "Simple", `0.5` = "A.O.", `-0.5` = "Flat"),
@@ -642,8 +674,8 @@ g_combined_rq3
             median_qi()  %>%
             ungroup() %>%
             mutate(lower95 = .lower, upper95 = .upper, median = sample_value, 
-                   s_lower95 = round(lower95, 3), s_upper95 = round(upper95, 3),
-                   CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']')) 
+                   s_lower95 = round(lower95, 2), s_upper95 = round(upper95, 2),
+                   CIs = paste0(round(median, 2), ' [', s_lower95, ',',  s_upper95, ']')) 
   if(which == "error"){
     b_CIs <- b_CIs %>%
             mutate(Condition = fct_reorder(Condition, .x = median, .desc = TRUE))
@@ -659,7 +691,6 @@ g_combined_rq3
   
   g <- post_samples %>%
       ggplot(aes(x = sample_value, y = Condition)) +
-      #theme(axis.text.y = element_text(size = 9)) + 
       geom_vline(xintercept = median_max, linetype = "dashed", color = "black", size = LINE_SIZE) +
       geom_vline(xintercept = median_min, linetype = "dashed", color = "black", size = LINE_SIZE) +
       geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.8, 
@@ -711,7 +742,7 @@ ggsave(g2_rq4, filename = "pic/RQ4-time.pdf", width = 8, height = 12.5, units = 
 g_combined_rq4
 ```
 
-
+This is the encoding to design the bubbles maps.
 ```{r RQ4-tiles, fig.height=12, fig.width=12, warning=FALSE, message=FALSE}
 
  draw_tiles <- function( m, 
@@ -793,9 +824,11 @@ ggsave(g_combined_rq4_tiles, filename = "pic/RQ4-bubbles.pdf", width = 10.5, hei
 g_combined_rq4_tiles
 
 ```
-# Extra figures
 
-```{r plot-demographics, fig.height=2.5, fig.width=4, message=FALSE}
+# Misc figures
+
+## Demographics
+```{r plot-demographics, fig.height=5, fig.width=8, message=FALSE}
 
 demographics <- metas %>% select(familiarML, familiarDR, familiarVIS, familiarVR)
 demographics_stack <- stack(demographics)
@@ -822,15 +855,15 @@ g_demographics <- ggplot() +
   scale_x_continuous(limit = c(0, 9), breaks = seq(1, 7, by = 1)) + 
   xlab("scale") + ylab("")
 
-g_demographics
-
 ggsave(g_demographics, filename = "pic/g_demographics.pdf", width = 3.5, height = 3.4, units = "in")
+
+g_demographics
 
 ```
 
-# Accuracy range examples
+## Accuracy range examples
 
-```{r plot-acc-bars, fig.height=2, fig.width=4, message=FALSE}
+```{r plot-acc-bars, fig.height=4, fig.width=8, message=FALSE}
 
 acc1 <- c(0.3978, 0.4054, 0.5998, 0.602, 0.605, 0.6052, 0.6528, 0.653, 0.6614, 0.6762, 0.6956, 0.7044, 0.713, 0.7162, 0.725, 0.73, 0.7326, 0.7362, 0.7398, 0.745, 0.7458, 0.7476, 0.751, 0.7538, 0.7668, 0.767, 0.7686, 0.7686, 0.769, 0.7744, 0.7748, 0.7754, 0.7758, 0.7778, 0.7788, 0.7794, 0.7806, 0.7828, 0.7834, 0.7848, 0.7858, 0.7882, 0.7888, 0.789, 0.7894, 0.7914, 0.7932, 0.7946, 0.7948, 0.7952, 0.7954, 0.7966, 0.7968, 0.7976, 0.799, 0.7992, 0.801, 0.8014, 0.8018, 0.8026, 0.8028, 0.8032, 0.804, 0.804, 0.8046, 0.805, 0.8056, 0.8058, 0.806, 0.8066, 0.8068, 0.8072, 0.8076, 0.808, 0.8084, 0.8098, 0.8108, 0.8108, 0.8108, 0.8118, 0.812, 0.8132, 0.8138, 0.8138, 0.8148, 0.816, 0.816, 0.8172, 0.8176, 0.8182, 0.8192, 0.8202, 0.8204, 0.8204, 0.8206, 0.8206, 0.8206, 0.8212, 0.8212, 0.822, 0.8224, 0.824, 0.8244, 0.8254, 0.8258, 0.8268, 0.8274, 0.8276, 0.8286, 0.8286, 0.829, 0.8302, 0.8314, 0.8314, 0.8326, 0.833, 0.8332, 0.8338, 0.834, 0.8352, 0.8358, 0.8364, 0.837, 0.8384, 0.8386, 0.8386, 0.8396, 0.8406, 0.8408, 0.8408, 0.8414, 0.842, 0.8428, 0.8436, 0.8442, 0.8444, 0.8444, 0.8446, 0.845, 0.8452, 0.847, 0.8472, 0.8472, 0.8474, 0.8474, 0.848, 0.85, 0.8504, 0.8506, 0.8514, 0.8516, 0.8518, 0.8534, 0.855, 0.8578, 0.858, 0.8582, 0.8584, 0.8584, 0.861, 0.8634, 0.8662, 0.8912, 0.8914, 0.8922, 0.8942, 0.8954, 0.896, 0.896, 0.896, 0.8962, 0.8964, 0.8966, 0.8968, 0.8972, 0.8974, 0.8978, 0.8978, 0.8978, 0.8982, 0.8982, 0.8984, 0.8984, 0.8986, 0.899, 0.8992, 0.8992, 0.8994, 0.8996, 0.8998, 0.8998, 0.8998, 0.8998, 0.8998, 0.9, 0.9, 0.9002, 0.9002, 0.9002, 0.9002, 0.9002, 0.9004, 0.9006, 0.9006, 0.9008, 0.901, 0.901, 0.9012, 0.9012, 0.9014, 0.9014, 0.9014, 0.9016, 0.9018, 0.9018, 0.9018, 0.902, 0.902, 0.902, 0.9022, 0.9024, 0.9026, 0.9026, 0.9026, 0.9026, 0.9026, 0.9028, 0.9028, 0.903, 0.903, 0.903, 0.903, 0.903, 0.9032, 0.9032, 0.9036, 0.9036, 0.9036, 0.9036, 0.9036, 0.9038, 0.9038, 0.9038, 0.9038, 0.9044, 0.9044, 0.9044, 0.9044, 0.9046, 0.9046, 0.905, 0.9052, 0.9052, 0.9052, 0.9054, 0.9054, 0.9056, 0.9056, 0.9056, 0.9058, 0.9058, 0.9058, 0.9058, 0.906, 0.906, 0.906, 0.906, 0.906, 0.9062, 0.9064, 0.9064, 0.9066, 0.9066, 0.9068, 0.9068, 0.9068, 0.9068, 0.907, 0.907, 0.9074, 0.9074, 0.9074, 0.908, 0.908, 0.9086, 0.9092, 0.9092, 0.9092, 0.9092, 0.9094, 0.9094, 0.9098, 0.9098, 0.91, 0.9106, 0.9114, 0.9114, 0.9126, 0.913, 0.9146)
 
@@ -845,19 +878,22 @@ g_bar1 <- ggplot() +
            theme(panel.grid.major.x = element_blank()) +
            geom_linerange(aes(ymax = 1, ymin = 0, x = acc1), size = 0.07, color = bars_color) +
            scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
-           scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
+           scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0)) +
+           ggtitle("CIFAR-10")
 
 g_bar2 <- ggplot() +
-        theme(panel.grid.major.x = element_blank()) +
-        geom_linerange(aes(ymax = 1, ymin = 0, x = acc2), size = 0.07, color = bars_color) +
-        scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
-        scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
+            theme(panel.grid.major.x = element_blank()) +
+            geom_linerange(aes(ymax = 1, ymin = 0, x = acc2), size = 0.07, color = bars_color) +
+            scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
+            scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))+
+            ggtitle("bABI")
 
 g_bar3 <- ggplot() +
-          theme(panel.grid.major.x = element_blank()) +
-          geom_linerange(aes(ymax = 1, ymin = 0, x = acc3), size = 0.07, color = bars_color) +
-          scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
-          scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0))
+            theme(panel.grid.major.x = element_blank()) +
+            geom_linerange(aes(ymax = 1, ymin = 0, x = acc3), size = 0.07, color = bars_color) +
+            scale_x_continuous(limits=c(0,1), breaks = seq(0, 1, by = 0.1), expand=c(0,0)) +
+            scale_y_continuous(limits=c(0,1), breaks = seq(0, 1, by = 1), expand=c(0,0)) +
+            ggtitle("F-MNIST")
 
 g_bars <- ggarrange(g_bar1, g_bar2, g_bar3, ncol = 1, align="v")
 
