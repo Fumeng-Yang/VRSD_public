@@ -1,5 +1,5 @@
 ---
-title: "Data Analysis for The effects of visual cues on understanding classification in immersive scatterplots"
+title: "Data analysis for the effects of visual cues on classification perception in immersive scatterplots"
 author: "Fumeng Yang"
 date: "`r Sys.Date()`"
 output: 
@@ -661,11 +661,11 @@ Given our primary interest in error magnitude, we form a rank list of performanc
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
     mutate(  # code it back so that we know which one is which...
              Device = recode(Device,  `0.5` = "HMD", `-0.5` = "Desktop"),
-             Motion = recode(Motion,  `0.5` = "Motion", `-0.5` = "No Motion"),
+             Motion = recode(Motion,  `0.5` = "Dynamic", `-0.5` = "Static"),
              Projection = recode(Projection, `0.5` = "Persp.", `-0.5` = "Orth."),
              Shading = recode(Shading, `0` = "Simple", `0.5` = "A.O.", `-0.5` = "Flat"),
-             DataModel = recode(DataModel, `0.5` = "CIFAR", `-0.5` =  "bAbI"),
-             Dimensionality = recode(Dimensionality, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
+             DataModel = recode(DataModel, `0.5` = "Image Data", `-0.5` =  "Text Data"),
+             Dimensionality = recode(Dimensionality, `-0.5` = "2D Embedding",  `0.5` = "3D Embedding"), 
              Condition = paste(Device, Motion, Projection, Shading, Dimensionality, DataModel, sep = seper))
   
   b_CIs <-  post_samples %>%
@@ -763,11 +763,11 @@ This is the encoding to design the bubbles maps.
     ungroup()%>%
     select(Device, Motion, Projection, Shading, Dimensionality, DataModel, sample_value) %>%
     mutate(  Device = recode(Device,  `0.5` = "2 HMD", `-0.5` = "1 Desktop"),
-             Motion = recode(Motion,  `0.5` = "2 Motion", `-0.5` = "1 No Motion"),
+             Motion = recode(Motion,  `0.5` = "2 Dynamic", `-0.5` = "1 Static"),
              Projection = recode(Projection, `-0.5` = "1 Orthographic", `0.5` = "2 Perspective"),
              Shading = recode(Shading, `-0.5` = "1 Flat Shading", `0` = "2 Simple", `0.5` = "3 Ambient Occlusion"),
-             DataModel = recode(DataModel, `0.5` = "2 CIFAR", `-0.5` =  "1 bAbI"),
-             Dimensionality = recode(Dimensionality, `-0.5` = "2D t-SNE",  `0.5` = "3D t-SNE"), 
+             DataModel = recode(DataModel, `0.5` = "2 Image Data", `-0.5` =  "1 Text Data"),
+             Dimensionality = recode(Dimensionality, `-0.5` = "2D Embedding",  `0.5` = "3D Embedding"), 
              Condition = paste(Dimensionality, Device, Motion, DataModel, Projection, Shading,  sep = seper))
   
   b_CIs <-  post_samples %>%
