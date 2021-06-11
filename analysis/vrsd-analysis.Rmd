@@ -189,6 +189,8 @@ theme_set(t)
 
 ```
 
+
+
 # Load data
 
 ```{r load-data, message = FALSE}
