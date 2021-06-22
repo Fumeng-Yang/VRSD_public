@@ -1,4 +1,4 @@
-# The Effects of Visual Cues on Classification Perception in Immersive Scatterplots (under review)
+# The Effects of Visual Cues in Immersive Scatterplots (under review)
 
 Supplementary Materials
 
