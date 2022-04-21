@@ -6,7 +6,7 @@ output:
   html_document: 
     toc: yes
     toc_depth: 4
-    highlight: textmate
+    highlight: pygments
     theme: united
     df_print: kable
 ---
@@ -16,20 +16,19 @@ output:
     knitr::opts_chunk$set(fig.width=5, fig.height=5) 
     # clean up workspace
     rm(list = ls(all.names = TRUE)) 
-    setwd("/Volumes/Data/Github/VRSD_public/analysis")
 ```
 
 ```{r knit-github, eval=FALSE,echo=FALSE,include=FALSE}
 # compile for github
 library(rmarkdown)
-render("//Volumes/Data/Github/VRSD_public/analysis/vrsd-analysis.Rmd", md_document(variant = "markdown_github"))
+render("/Users/fm/Documents/Github/VRSD_public/analysis/vrsd-analysis.Rmd", md_document(variant = "markdown_github"))
 ```
 
 Dependencies
 ```{r load-packages, message=FALSE}
-library(ggplot2) #core graphics package
+
 library(ggridges) # ggarrange
-library(ggpubr)
+library(ggpubr) 
 library(ggdist) 
 library(ggtext)
 library(ggforce)
@@ -44,7 +43,7 @@ library(tidybayes)
 
 # a flag to let us load models from the disk (F) or re-run the models (T)
 # it took about 20 ~ 60 minutes to run the models
-REBUILD_FLAG <<- F
+REBUILD_FLAG <<- FALSE
 ```
 
 ```{r style-setting, include = FALSE, message = FALSE}
@@ -318,9 +317,9 @@ model_diagnostics <- function(m, name = "model diagnostics"){
 
 
 ```{r MCMC-settings, include = FALSE}
-  N_ITER = 4000
-  N_WARMUP = 2000
-  N_THIN = 1
+  N_ITER = 8000
+  N_WARMUP = 4000
+  N_THIN = 2
   N_CHAINS = 2
   DELTA = 0.999
   TREE_DEPTH = 20
@@ -359,9 +358,10 @@ if(REBUILD_FLAG){
                                prior = c( # priors" 2 SDs roughly catch 95% data
                                   prior(normal(0, 2.5), class = "b"),
                                   prior(normal(0, 25),  class = "b", coef = "Intercept"), 
-                                  prior(gamma(1, 10), class = "shape"),
-                                  prior(student_t(3, 0, 5), class = "sd")
+                                  prior(gamma(2, 10), class = "shape"),
+                                  prior(student_t(3, 0, 2.5), class = "sd")
                                 ), 
+                                backend = 'cmdstanr',
                                 chains = N_CHAINS, iter = N_ITER, warmup = N_WARMUP, thin = N_THIN, cores = N_CORES,
                                 control = list(adapt_delta = DELTA, max_treedepth = TREE_DEPTH))
   
@@ -404,11 +404,12 @@ if(REBUILD_FLAG == TRUE){
                 prior(normal(0, 2.5), class = "b"),
                 prior(normal(0, 30), class = "b", coef = "Intercept"), 
                 #prior(gamma(1, 20), class = "shape"),
-                prior(student_t(3, 0, 10), class = "sd")
+                prior(student_t(3, 0, 2.5), class = "sd")
                 ) 
     
   m_brms_time_gamma <<- brm(m_time_gamma, 
                               data = trials, family = Gamma(link="log"),  prior = priors_time_gamma, 
+                              backend = 'cmdstanr',
                               chains = N_CHAINS, iter = N_ITER, warmup = N_WARMUP, thin = N_THIN, cores = N_CORES,
                               control = list(adapt_delta = DELTA, max_treedepth = TREE_DEPTH))
   
@@ -453,11 +454,22 @@ draw_coefs <- function(m,
     select(target_coefs) %>% 
     gather(key = "coefs", value = "value") %>% 
     ungroup() 
+  
+ pr <- b_samples %>% 
+    mutate(`Pr > 0` = if_else(value >= 0 , 1, 0)) %>%
+    group_by(coefs) %>%
+    summarise(`Pr > 0` = sum(`Pr > 0`) / nrow(post_samples)) %>%
+    mutate(`Pr > 0` = round(`Pr > 0` * 100, 2))
+    
  
   g <- b_samples %>%
     mutate(value = exp(value)) %>%
     ggplot(aes(x = value, y = coefs)) + 
       geom_richtext(data = b_CIs, mapping = aes(x = tail(breaks_x, n = 1) * 1.1, y = coefs, label = CIs), 
+                 size = 2, 
+                 fill = NA, label.color = NA, # remove background and outline
+                 label.padding = grid::unit(rep(0, 4), "pt")) + 
+      geom_richtext(data = pr, mapping = aes(x = tail(breaks_x, n = 1) * 1.25, y = coefs, label = `Pr > 0`), 
                  size = 2, 
                  fill = NA, label.color = NA, # remove background and outline
                  label.padding = grid::unit(rep(0, 4), "pt")) + 
@@ -586,7 +598,7 @@ m <- m_brms_error_hurdle_gamma
             mutate(levels_values = factor(levels_values),
                  s_lower95 = round(lower95, 3), s_upper95 = round(upper95, 3),
                  CIs = paste0(round(median, 3), ' [', s_lower95, ',',  s_upper95, ']'))
-
+  print(b_CIs)
   g <- post_samples %>%
       ggplot(aes(x = sample_value, y = levels_names)) +
       geom_density_ridges(
